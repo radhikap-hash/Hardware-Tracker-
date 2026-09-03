@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PCB Tracker</title>
+<?!= include('Styles') ?>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="mark">PCB Tracker <span id="hdr-count"></span></div>
+    <div class="meta" id="hdr-meta">Loading…</div>
+    <div class="top-act">
+      <button class="btn btn-quiet" id="btn-refresh">Refresh</button>
+      <button class="btn btn-solid" id="btn-add">Add a board</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h2>Where the work is sitting</h2>
+    <p>Every active board counted against the stage it is waiting at right now.</p>
+    <div class="load" id="load"></div>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <div class="tools">
+    <input class="field" id="q" type="search" placeholder="Search a board, customer or owner" aria-label="Search boards">
+    <select class="field" id="f-cust" aria-label="Filter by customer"></select>
+    <select class="field" id="f-stage" aria-label="Filter by stage"></select>
+    <span class="spacer"></span>
+    <span class="count" id="count"></span>
+    <button class="btn btn-quiet" id="btn-expand">Expand all</button>
+  </div>
+
+  <div id="list"><div class="loading">Reading the sheet…</div></div>
+</main>
+
+<div class="veil" id="veil"></div>
+
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+  <div class="panel-h">
+    <div>
+      <h3 id="panel-title">Board</h3>
+      <div class="meta" id="panel-sub"></div>
+    </div>
+    <button class="close" id="panel-x" aria-label="Close">&times;</button>
+  </div>
+  <div class="panel-b" id="panel-b"></div>
+  <div class="panel-f" id="panel-f"></div>
+</aside>
+
+<?!= include('FormBody') ?>
+
+<script>
+var S = { boards: [], lists: {}, q: '', cust: '', stage: '', filter: 'active', open: {}, sel: null, mode: 'view' };
+
+var STAGES = PCBForm.STAGES;                       // [key, short, full]
+var CLOSED = { 'Completed': 1, 'NA': 1, 'Cancelled': 1 };
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function $(id){ return document.getElementById(id); }
+function lateDays(b){ return typeof b.delay === 'number' && b.delay > 0 ? b.delay : 0; }
+function isActive(b){ return b.overall !== 'Completed' && b.overall !== 'Cancelled'; }
+
+/* ------------------------------------------------------------------ load */
+
+function load(){
+  $('hdr-meta').textContent = 'Reading the sheet…';
+  if (window.PRELOADED) { return receive(window.PRELOADED); }
+  google.script.run
+    .withSuccessHandler(receive)
+    .withFailureHandler(function(err){
+      $('list').innerHTML = '<div class="empty"><b>Could not read the sheet</b>' +
+        esc(err && err.message ? err.message : 'Check that the COMPLETED and ACTIVE tabs still exist.') + '</div>';
+      $('hdr-meta').textContent = 'Not connected';
+    })
+    .getBoards();
+}
+
+function receive(data){
+  S.boards = data.boards || [];
+  S.lists = data.lists || {};
+  var t = new Date(data.fetched || Date.now());
+  $('hdr-meta').textContent = 'Updated ' + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  $('hdr-count').textContent = S.boards.length + ' boards';
+  buildFilters();
+  render();
+}
+
+function buildFilters(){
+  var cs = Array.from(new Set(S.boards.map(function(b){ return b.customer; }))).sort();
+  $('f-cust').innerHTML = '<option value="">All customers</option>' +
+    cs.map(function(c){ return '<option' + (c === S.cust ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
+  $('f-stage').innerHTML = '<option value="">All stages</option>' +
+    STAGES.map(function(s){ return '<option value="' + s[2] + '"' + (s[2] === S.stage ? ' selected' : '') +
+      '>' + esc(s[2]) + '</option>'; }).join('');
+}
+
+/* ---------------------------------------------------------------- filters */
+
+function visible(){
+  var q = S.q.toLowerCase();
+  return S.boards.filter(function(b){
+    if (S.filter === 'active' && !isActive(b)) return false;
+    if (S.filter === 'done' && isActive(b)) return false;
+    if (S.filter === 'late' && !lateDays(b)) return false;
+    if (S.filter === 'hold' && b.overall !== 'On Hold') return false;
+    if (S.filter === 'respin' && b.respin !== 'Yes') return false;
+    if (S.cust && b.customer !== S.cust) return false;
+    if (S.stage && b.current !== S.stage) return false;
+    if (q) {
+      var hay = [b.project, b.customer, b.manager, b.comment].join(' ').toLowerCase();
+      var owners = STAGES.map(function(s){ return (b.stages[s[0]] || {}).owner || ''; }).join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0 && owners.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+}
+
+/* ----------------------------------------------------------------- render */
+
+function render(){
+  var act = S.boards.filter(isActive);
+
+  // hero: stage load
+  var max = 1;
+  var per = STAGES.map(function(s){
+    var at = act.filter(function(b){ return b.current === s[2]; });
+    var late = at.filter(lateDays).length;
+    max = Math.max(max, at.length);
+    return { s: s, n: at.length, late: late };
+  });
+  $('load').innerHTML = per.map(function(p){
+    var h = Math.round(18 + (p.n / max) * 74);
+    var lateH = p.n ? Math.round(h * (p.late / p.n)) : 0;
+    return '<button class="load-col" data-stage="' + p.s[2] + '">' +
+      '<div class="load-n' + (p.n ? '' : ' zero') + '">' + p.n + '</div>' +
+      '<div class="load-bar" style="height:' + h + 'px">' +
+        '<div class="load-fill' + (lateH ? ' late' : '') + '" style="height:' + Math.max(lateH, p.n ? 4 : 0) + 'px"></div>' +
+      '</div>' +
+      '<div class="load-name">' + esc(p.s[1]) + '</div>' +
+      '<div class="load-late">' + (p.late ? p.late + ' late' : '') + '</div>' +
+    '</button>';
+  }).join('');
+
+  // stats
+  var stats = [
+    { k: 'active', n: act.length, l: 'Active boards' },
+    { k: 'done',   n: S.boards.length - act.length, l: 'Closed' },
+    { k: 'late',   n: act.filter(lateDays).length, l: 'Past target', c: 'late' },
+    { k: 'hold',   n: act.filter(function(b){ return b.overall === 'On Hold'; }).length, l: 'On hold' },
+    { k: 'respin', n: S.boards.filter(function(b){ return b.respin === 'Yes'; }).length, l: 'Waiting on respin', c: 'respin' }
+  ];
+  $('stats').innerHTML = stats.map(function(x){
+    return '<button class="stat ' + (x.c || '') + (S.filter === x.k ? ' on' : '') + '" data-k="' + x.k + '">' +
+      '<div class="stat-n">' + x.n + '</div><div class="stat-l">' + esc(x.l) + '</div></button>';
+  }).join('');
+
+  // grouped list
+  var rows = visible();
+  $('count').textContent = rows.length + ' of ' + S.boards.length + ' shown';
+  if (!rows.length) {
+    $('list').innerHTML = '<div class="empty"><b>Nothing matches those filters</b>Clear the search or pick a different customer.</div>';
+    return;
+  }
+  var by = {};
+  rows.forEach(function(b){ (by[b.customer] = by[b.customer] || []).push(b); });
+  var names = Object.keys(by).sort(function(a, c){
+    return by[c].filter(isActive).length - by[a].filter(isActive).length || a.localeCompare(c);
+  });
+
+  $('list').innerHTML = names.map(function(name){
+    var g = by[name];
+    var late = g.filter(lateDays).length;
+    var hold = g.filter(function(b){ return b.overall === 'On Hold'; }).length;
+    var open = S.open[name] !== false;
+    return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(name) + '">' +
+      '<button class="grp-h"><span class="caret"></span><span class="grp-name">' + esc(name) + '</span>' +
+        '<span class="grp-tags">' +
+          '<span class="tag">' + g.length + ' board' + (g.length === 1 ? '' : 's') + '</span>' +
+          (hold ? '<span class="tag hold">' + hold + ' on hold</span>' : '') +
+          (late ? '<span class="tag late">' + late + ' past target</span>' : '') +
+        '</span></button>' +
+      '<div class="grp-body">' + g.map(rowHtml).join('') + '</div>' +
+    '</section>';
+  }).join('');
+}
+
+function rowHtml(b){
+  var d = lateDays(b);
+  var trace = STAGES.map(function(s){
+    var st = (b.stages[s[0]] || {}).status || '';
+    var here = b.current === s[2] ? ' here' : '';
+    return '<span class="seg' + here + '" data-s="' + esc(st) + '" title="' + esc(s[2] + ': ' + (st || 'not recorded')) + '"></span>';
+  }).join('');
+  return '<button class="row" data-p="' + esc(b.project) + '">' +
+    '<span><span class="row-name">' + esc(b.project) + '</span>' +
+      '<span class="row-sub">' + esc(b.manager || 'no manager set') + '</span></span>' +
+    '<span class="trace">' + trace + '</span>' +
+    '<span class="row-stage">' + esc(b.current === 'All Stages Closed' ? 'Closed' : b.current) + '</span>' +
+    '<span><span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span></span>' +
+    '<span class="' + (d ? 'row-late' : 'row-late none') + '">' +
+      (d ? d + ' days past target' : (b.delay === 'No date' ? 'no target date' : '')) +
+      '<span class="row-cmt">' + esc(b.comment || '') + '</span></span>' +
+  '</button>';
+}
+
+/* ------------------------------------------------------------ slide-over */
+
+function openPanel(){ $('veil').classList.add('on'); $('panel').classList.add('on'); }
+function closePanel(){
+  $('veil').classList.remove('on'); $('panel').classList.remove('on');
+  S.sel = null; S.mode = 'view';
+}
+
+function showBoard(project){
+  var b = S.boards.filter(function(x){ return x.project === project; })[0];
+  if (!b) return;
+  S.sel = b; S.mode = 'view';
+  $('panel-title').textContent = b.project;
+  $('panel-sub').textContent = b.customer + ' · ' + (b.manager || 'no manager set') + ' · on the ' + b.sheet + ' sheet';
+
+  var d = lateDays(b);
+  var steps = STAGES.map(function(s, i){
+    var v = b.stages[s[0]] || {};
+    var st = v.status || '';
+    var bits = [];
+    if (v.owner) bits.push(esc(v.owner));
+    if (v.target) bits.push('target ' + esc(v.target));
+    return '<div class="step">' +
+      '<div class="step-rail"><span class="dot" data-s="' + esc(st) + '"></span>' +
+        (i < STAGES.length - 1 ? '<span class="rail"></span>' : '') + '</div>' +
+      '<div class="step-b"><div class="step-t"><b>' + esc(s[2]) + '</b>' +
+        '<span class="chip" data-s="' + esc(st) + '">' + esc(st || 'not recorded') + '</span></div>' +
+        (bits.length ? '<div class="step-m">' + bits.join(' · ') + '</div>' : '') +
+      '</div></div>';
+  }).join('');
+
+  $('panel-b').innerHTML =
+    '<dl class="kv">' +
+      '<dt>Current stage</dt><dd>' + esc(b.current) + '</dd>' +
+      '<dt>Overall status</dt><dd><span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span></dd>' +
+      '<dt>Against target</dt><dd>' + (d ? '<span style="color:var(--late);font-weight:600">' + d + ' days past</span>'
+        : esc(b.delay === 'No date' ? 'no target date on this stage' : 'on target')) + '</dd>' +
+      '<dt>Through process</dt><dd>' + (typeof b.pct === 'number' ? Math.round(b.pct * 100) + '%' : '—') + '</dd>' +
+      (b.rev ? '<dt>Revision</dt><dd>' + esc(b.rev) + '</dd>' : '') +
+      (b.respin === 'Yes' ? '<dt>Respin</dt><dd>flagged, re-entering at ' + esc(b.reentry || 'a stage not yet chosen') + '</dd>' : '') +
+    '</dl>' +
+    (b.comment ? '<div class="cmt">' + esc(b.comment) + '</div>' : '') +
+    (b.notes ? '<div class="note">' + esc(b.notes) + '</div>' : '') +
+    steps;
+
+  $('panel-f').innerHTML =
+    '<button class="btn btn-solid" id="p-edit">Edit this board</button>' +
+    (b.sheet === 'COMPLETED' ? '<button class="btn" id="p-respin">Send back to Active</button>' : '') +
+    '<button class="btn btn-quiet" id="p-close" style="margin-left:auto">Close</button>';
+
+  $('p-close').onclick = closePanel;
+  $('p-edit').onclick = function(){ showForm(b); };
+  if ($('p-respin')) $('p-respin').onclick = function(){ showForm(b); };
+  openPanel();
+}
+
+function showForm(board){
+  S.mode = 'edit';
+  $('panel-title').textContent = board ? board.project : 'New board';
+  $('panel-sub').textContent = board ? 'Editing — saving puts it on whichever sheet its stages call for'
+                                     : 'Fill in what you know. Stages you leave as NA will not block completion.';
+  $('panel-f').innerHTML = '';
+  PCBForm.mount($('panel-b'), {
+    board: board, lists: S.lists,
+    onSaved: function(){ load(); setTimeout(closePanel, 1100); },
+    onCancel: function(){ board ? showBoard(board.project) : closePanel(); }
+  });
+  openPanel();
+}
+
+/* ------------------------------------------------------------------ wire */
+
+document.addEventListener('click', function(e){
+  var row = e.target.closest('.row');
+  if (row) return showBoard(row.getAttribute('data-p'));
+
+  var gh = e.target.closest('.grp-h');
+  if (gh) {
+    var g = gh.closest('.grp'), n = g.getAttribute('data-g');
+    S.open[n] = !g.classList.contains('open');
+    g.classList.toggle('open');
+    return;
+  }
+  var stat = e.target.closest('.stat');
+  if (stat) { var k = stat.getAttribute('data-k'); S.filter = (S.filter === k ? 'all' : k); return render(); }
+
+  var col = e.target.closest('.load-col');
+  if (col) { S.stage = (S.stage === col.getAttribute('data-stage') ? '' : col.getAttribute('data-stage'));
+             $('f-stage').value = S.stage; return render(); }
+});
+
+$('veil').onclick = closePanel;
+$('panel-x').onclick = closePanel;
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
+
+$('q').addEventListener('input', function(){ S.q = this.value; render(); });
+$('f-cust').addEventListener('change', function(){ S.cust = this.value; render(); });
+$('f-stage').addEventListener('change', function(){ S.stage = this.value; render(); });
+$('btn-refresh').onclick = load;
+$('btn-add').onclick = function(){ showForm(null); };
+$('btn-expand').onclick = function(){
+  var anyClosed = document.querySelector('.grp:not(.open)');
+  document.querySelectorAll('.grp').forEach(function(g){
+    S.open[g.getAttribute('data-g')] = !!anyClosed;
+    g.classList.toggle('open', !!anyClosed);
+  });
+  this.textContent = anyClosed ? 'Collapse all' : 'Expand all';
+};
+
+load();
+if (!window.PRELOADED) setInterval(function(){ if (S.mode === 'view') load(); }, 60000);
+</script>
+</body>
+</html>
