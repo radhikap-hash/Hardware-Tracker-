@@ -1209,8 +1209,9 @@ function render(){
     var late = g.filter(lateDays).length;
     var hold = g.filter(function(b){ return b.overall === 'On Hold'; }).length;
     var wip  = g.filter(function(b){ return b.overall === 'In Progress'; }).length;
-    var open = S.open[name] === true || (forced && S.open[name] !== false);
-    return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(name) +
+    var gkey = 'boards:' + name;
+    var open = S.open[gkey] === true || (forced && S.open[gkey] !== false);
+    return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(gkey) +
              '" style="--accent:' + accent(name) + '">' +
       '<button class="grp-h"><span class="caret"></span><span class="grp-dot"></span>' +
         '<span class="grp-name">' + esc(name) + '</span>' +
@@ -1654,7 +1655,8 @@ function renderDone(){
     '</div>' +
     names.map(function(name){
       var g = byCo[name];
-      return '<section class="grp" style="--accent:' + accent(name) + ';margin-top:11px">' +
+      return '<section class="grp' + (S.open['done:' + name] === true ? ' open' : '') +
+               '" data-g="done:' + esc(name) + '" style="--accent:' + accent(name) + ';margin-top:11px">' +
         '<button class="grp-h"><span class="caret"></span><span class="grp-dot"></span>' +
           '<span class="grp-name">' + esc(name) + '</span>' +
           '<span class="grp-tags"><span class="tag">' + g.length + ' closed</span></span></button>' +
@@ -1723,13 +1725,13 @@ function markDone(project, stageKey){
   stages[stageKey].status = 'Completed';
   if (!stages[stageKey].eda) stages[stageKey].eda = new Date().toISOString().slice(0, 10);
 
-  var btn = document.querySelector('[data-done="' + stageKey + '"]');
+  var btn = document.querySelector('#panel-b [data-done="' + stageKey + '"][data-board]');
   if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   google.script.run
     .withSuccessHandler(function(){ load(); closePanel(); })
     .withFailureHandler(function(err){
       if (btn) { btn.disabled = false; btn.textContent = 'Review done'; }
-      alert(err && err.message ? err.message : 'Could not save that.');
+      alert(err && err.message ? err.message : 'Could not save that. Nothing was changed.');
     })
     .saveBoard({
       project: b.project, customer: b.customer, manager: b.manager, rev: b.rev || '',
@@ -1852,8 +1854,8 @@ $('f-stage').addEventListener('change', function(){ S.stage = this.value; render
 $('btn-refresh').onclick = load;
 $('btn-add').onclick = function(){ showForm(null); };
 $('btn-expand').onclick = function(){
-  var openAll = !!document.querySelector('.grp:not(.open)');
-  document.querySelectorAll('.grp').forEach(function(g){
+  var openAll = !!document.querySelector('#pane-boards .grp:not(.open)');
+  document.querySelectorAll('#pane-boards .grp').forEach(function(g){
     S.open[g.getAttribute('data-g')] = openAll;
     g.classList.toggle('open', openAll);
   });
