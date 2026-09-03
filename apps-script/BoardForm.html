@@ -62,16 +62,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pcard:hover{border-color:var(--ink2);border-left-color:var(--accent,var(--ink2))}
 .pcard h4{margin:0 0 2px;font-size:15.5px;font-weight:600}
 .pcard .pmeta{font-size:12.5px;color:var(--muted)}
-.pnums{display:flex;gap:16px;margin-top:12px}
-.pnum{display:flex;flex-direction:column}
-.pnum b{font-size:21px;font-weight:600;line-height:1.1}
-.pnum span{font-size:11.5px;color:var(--muted)}
-.pnum.late b{color:var(--late)}
-.pnum.hold b{color:var(--hold)}
+.pload{margin-top:13px;font-size:14px;line-height:1.4}
+.pload b{font-size:25px;font-weight:600;line-height:1;margin-right:3px}
+.pload span{color:var(--muted)}
+.pflags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:1px}
+.flag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.flag.late{background:var(--late-bg);color:var(--late)}
+.flag.hold{background:var(--hold-bg);color:var(--hold)}
+.flag.free{background:var(--done-bg);color:var(--done)}
 .pnext{margin-top:11px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--soft);padding-top:9px}
 .pnext em{font-style:normal;color:var(--muted)}
-.pbar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--soft);margin-top:11px}
-.pbar i{display:block;height:100%}
+.pbar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--soft);margin-top:11px}
+.pbar i{display:block;height:100%;position:static}
+.pbar i.wip{background:var(--wip)}
+.pbar i.hold{background:var(--hold)}
+.pbar i.idle{background:var(--wait);opacity:.5}
 
 /* --------------------------------------------------------- gantt timeline */
 .gantt{margin-top:12px;background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:6px 0 12px}
@@ -98,7 +103,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--late);opacity:.55;pointer-events:none}
 .g-none{padding:26px 16px;text-align:center;color:var(--muted);font-size:13.5px}
 .g-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 2px 0}
-.g-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.g-key i{display:inline-block;position:static;width:11px;height:11px;border-radius:2px;
+          margin-right:5px;vertical-align:-1px;padding:0;top:auto;left:auto}
+.g-key i.wip{background:var(--wip)}
+.g-key i.hold{background:var(--hold)}
+.g-key i.idle{background:var(--wait)}
+.g-key i.late{background:var(--late)}
+.g-key i.now{background:var(--late);width:2px;height:12px;border-radius:0}
 
 /* ---------------------------------------------------------- schedule tab */
 .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:14px;
@@ -118,6 +129,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bk-t u{display:inline-block;text-decoration:none;font-size:11.5px;font-weight:600;margin-top:4px;
         color:var(--bk,var(--muted))}
 .bk-empty{padding:20px 14px;font-size:12.5px;color:var(--muted);text-align:center}
+
+/* --------------------------------------------------- projected schedule */
+.bk-t.proj{background:repeating-linear-gradient(135deg,transparent,transparent 7px,#F4F6F8 7px,#F4F6F8 14px)}
+.bk-t.proj b{color:var(--ink2)}
+.proj-tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;
+          background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:1px}
+
+/* -------------------------------------------------------- done / actions */
+.done-btn{appearance:none;border:1px solid var(--done);background:var(--done-bg);color:var(--done);
+          border-radius:5px;padding:5px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+          white-space:nowrap}
+.done-btn:hover{background:var(--done);color:#fff}
+.done-btn[disabled]{opacity:.35;cursor:default;border-color:var(--rule);background:none;color:var(--muted)}
+.stbl td.act{width:1%;white-space:nowrap;text-align:right}
 
 /* ------------------------------------------------------------ health tab */
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
@@ -485,6 +510,20 @@ window.PCBForm = (function () {
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
+  /** Owner dropdown. Values stay as the short names the sheet already uses. */
+  function ownerOpts(L, stageKey, sel){
+    var list = (L.owners && L.owners.options && L.owners.options[stageKey]) || [];
+    var h = '<option value="">Unassigned</option>';
+    var seen = {};
+    list.forEach(function(o){
+      if (seen[o.v]) return; seen[o.v] = 1;
+      h += '<option value="' + esc(o.v) + '"' + (o.v === sel ? ' selected' : '') + '>' +
+             esc(o.l || o.v) + '</option>';
+    });
+    if (sel && !seen[sel]) h += '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>';
+    return h;
+  }
+
   function opts(list, sel, blank){
     var h = blank ? '<option value="">' + esc(blank) + '</option>' : '';
     (list || []).forEach(function(v){
@@ -492,6 +531,18 @@ window.PCBForm = (function () {
     });
     if (sel && (list || []).indexOf(sel) < 0) h += '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>';
     return h;
+  }
+
+  
+
+  function todayISO(){
+    var t = new Date();
+    return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
+  }
+
+  /** On a new board, pre-fill the person who normally handles that stage. */
+  function usual(L, stageKey){
+    return (L.owners && L.owners.usual && L.owners.usual[stageKey]) || '';
   }
 
   function midnight(iso){ var d = new Date(iso + 'T00:00:00'); return isNaN(d) ? null : d; }
@@ -555,11 +606,14 @@ window.PCBForm = (function () {
         '<td><span class="chip" data-s="' + esc(st) + '">' + esc(st || 'not set') + '</span></td>' +
         '<td class="num ' + dd.c + '">' + (dd.t ? esc(dd.t) : '<span class="dash">—</span>') + '</td>' +
         '<td class="cmt-cell">' + (here && b.comment ? esc(b.comment) : '<span class="dash">—</span>') + '</td>' +
+        '<td class="act">' + (st && st !== 'Completed' && st !== 'NA' && st !== 'Cancelled'
+          ? '<button class="done-btn" data-done="' + s[0] + '" data-board="' + esc(b.project) + '">Review done</button>'
+          : '') + '</td>' +
       '</tr>';
     }).join('');
     return '<div class="tbl-wrap"><table class="stbl">' +
       '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th>' +
-      '<th>Days took to complete / delayed by</th><th>Comments</th></tr></thead>' +
+      '<th>Days took to complete / delayed by</th><th>Comments</th><th></th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -574,17 +628,21 @@ window.PCBForm = (function () {
     var rows = STAGES.map(function(s){
       var v = (b.stages && b.stages[s[0]]) || {};
       var here = cur === s[2];
-      return '<tr data-s="' + esc(v.status || 'NA') + '" data-row="' + s[0] + '"' + (here ? ' class="here"' : '') + '>' +
+      var own = v.owner || (isNew ? usual(L, s[0]) : '');
+      var st = v.status || 'NA';
+      return '<tr data-s="' + esc(st) + '" data-row="' + s[0] + '"' + (here ? ' class="here"' : '') + '>' +
         '<td class="snc"><div class="sn">' + s[3] + '</div></td>' +
         '<td class="nm">' + esc(s[1]) + '</td>' +
-        '<td><input data-k="owner" data-s="' + s[0] + '" placeholder="Owner" value="' + esc(v.owner) + '"></td>' +
-        '<td><select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, v.status || 'NA') + '</select></td>' +
+        '<td><select data-k="owner" data-s="' + s[0] + '">' + ownerOpts(L, s[0], own) + '</select></td>' +
+        '<td><select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, st) + '</select></td>' +
         '<td><input data-k="edc" data-s="' + s[0] + '" type="date" value="' + esc(v.edc) + '"></td>' +
         (isNew ? '' :
           '<td><input data-k="eda" data-s="' + s[0] + '" type="date" value="' + esc(v.eda) + '"></td>' +
           '<td class="cmt-cell">' +
             (here ? '<input id="pf-cm" placeholder="Latest comment" value="' + esc(b.comment) + '">'
-                  : '<span class="dash">—</span>') + '</td>') +
+                  : '<span class="dash">&mdash;</span>') + '</td>' +
+          '<td class="act"><button type="button" class="done-btn" data-done="' + s[0] + '"' +
+            (st === 'Completed' || st === 'NA' ? ' disabled' : '') + '>Review done</button></td>') +
       '</tr>';
     }).join('');
 
@@ -605,7 +663,7 @@ window.PCBForm = (function () {
         '<h4>Stages</h4>' +
         '<div class="tbl-wrap"><table class="stbl">' +
           '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th><th>EDC</th>' +
-            (isNew ? '' : '<th>EDA</th><th>Comments</th>') + '</tr></thead>' +
+            (isNew ? '' : '<th>EDA</th><th>Comments</th><th></th>') + '</tr></thead>' +
           '<tbody>' + rows + '</tbody></table></div>' +
 
         (isNew ? '<div class="f" style="margin-top:16px"><label for="pf-cm2">Latest comment</label>' +
@@ -675,7 +733,36 @@ window.PCBForm = (function () {
       $('pf-v').innerHTML = 'Current stage <b>' + esc(v.stage) + '</b> · status <b>' + esc(v.status) + '</b><br>' +
         '<em>Saving puts this board on the ' + sheet + ' sheet.</em>';
     }
-    el.addEventListener('change', paint);
+    /** Naming an owner on a stage still sitting at NA starts it, so a stage is
+     *  never left assigned-but-not-applicable by accident. */
+    el.addEventListener('change', function(ev){
+      var n = ev.target;
+      if (n.getAttribute && n.getAttribute('data-k') === 'owner' && n.value.trim()) {
+        var sel = el.querySelector('[data-k="status"][data-s="' + n.getAttribute('data-s') + '"]');
+        if (sel && sel.value === 'NA') sel.value = 'Not Started';
+      }
+      if (n.getAttribute && n.getAttribute('data-k') === 'eda' && n.value) {
+        var s2 = el.querySelector('[data-k="status"][data-s="' + n.getAttribute('data-s') + '"]');
+        if (s2 && s2.value !== 'Completed') s2.value = 'Completed';
+      }
+      paint();
+    });
+
+    /** Review done — marks the stage Completed and stamps today as its EDA. */
+    el.addEventListener('click', function(ev){
+      var btn = ev.target.closest('[data-done]');
+      if (!btn) return;
+      ev.preventDefault();
+      var k = btn.getAttribute('data-done');
+      var sel = el.querySelector('[data-k="status"][data-s="' + k + '"]');
+      var eda = el.querySelector('[data-k="eda"][data-s="' + k + '"]');
+      if (sel) sel.value = 'Completed';
+      if (eda && !eda.value) eda.value = todayISO();
+      paint();
+      msg.className = 'msg';
+      msg.textContent = 'Marked done — press Save changes to write it to the sheet.';
+    });
+
     paint();
 
     function run(fn, arg, label){
