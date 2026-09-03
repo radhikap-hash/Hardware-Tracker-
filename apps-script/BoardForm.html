@@ -48,17 +48,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero{margin:22px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:20px 22px 14px}
 .hero h2{margin:0 0 2px;font-size:15px;font-weight:600}
 .hero p{margin:0 0 20px;color:var(--muted);font-size:12.5px}
-.load{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end;min-height:130px}
-.load-col{display:flex;flex-direction:column;justify-content:flex-end;gap:7px;text-align:center}
-.load-bar{position:relative;background:var(--soft);border-radius:4px 4px 0 0;min-height:3px;
-          display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.load-fill{background:var(--wip);opacity:.85}
-.load-fill.late{background:var(--late)}
-.load-n{font-size:20px;font-weight:600;line-height:1}
+.load{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end}
+.load-col{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;
+          color:inherit;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;
+          gap:6px;text-align:center;min-width:0}
+.load-n{font-size:19px;font-weight:600;line-height:1}
 .load-n.zero{color:var(--muted);font-weight:450}
-.load-name{font-size:11.5px;color:var(--ink2);line-height:1.25}
-.load-late{font-size:11px;color:var(--late);font-weight:500;min-height:15px}
-.load-col:hover .load-bar{outline:1px solid var(--ink2)}
+.load-bar{display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px;
+          background:var(--soft);overflow:hidden}
+.load-ok{background:var(--wip)}
+.load-late{background:var(--late)}
+.load-name{font-size:11px;color:var(--ink2);line-height:1.2;overflow-wrap:anywhere}
+.load-sub{font-size:10.5px;color:var(--late);font-weight:500;min-height:14px;line-height:1.2}
+.load-col:hover .load-bar{outline:1.5px solid var(--ink);outline-offset:1px}
+.load-col.on .load-bar{outline:1.5px solid var(--ink);outline-offset:1px}
 
 /* ------------------------------------------------------------------ stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0 0}
@@ -212,7 +215,8 @@ input.field{min-width:230px}
   .node-l,.node-d{font-size:9.5px}
   .f-grid{grid-template-columns:1fr}
   .srow{grid-template-columns:1fr 1fr;}
-  .load{grid-template-columns:repeat(4,1fr)}
+  .load-name{font-size:9.5px}
+  .load-n{font-size:16px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -232,13 +236,13 @@ input.field{min-width:230px}
  */
 window.PCBForm = (function () {
   var STAGES = [
-    ['S1','Schematic','S1 Schematic'],
-    ['S2','BOM','S2 BOM Procurement'],
-    ['S3','Layout','S3 PCB Layout'],
-    ['S4','SI & PI','S4 SI & PI'],
-    ['S5','Fab','S5 Bare-PCB Fab'],
-    ['S6','Assembly','S6 Assembly'],
-    ['S7','Bring-up','S7 Bring-up']
+    ['SCH', 'Schematic', 'S1 Schematic'],
+    ['LAY', 'Layout',    'S2 PCB Layout'],
+    ['SIPI','SI & PI',   'S3 SI & PI'],
+    ['FAB', 'Fab',       'S4 Bare-PCB Fab'],
+    ['ASM', 'Assembly',  'S5 Assembly'],
+    ['BRU', 'Bring-up',  'S6 Bring-up'],
+    ['BOM', 'BOM',       'S7 BOM Procurement']
   ];
   var CLOSED = { 'Completed':1, 'NA':1, 'Cancelled':1 };
 
