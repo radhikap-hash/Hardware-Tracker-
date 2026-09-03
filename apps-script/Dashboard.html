@@ -45,6 +45,78 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn-quiet:hover{background:var(--soft)}
 .btn[disabled]{opacity:.5;cursor:default}
 
+/* ------------------------------------------------------------------ tabs */
+.tabs{display:flex;gap:4px;margin:22px 0 0;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+.tab-btn{appearance:none;background:none;border:0;border-bottom:2.5px solid transparent;
+         padding:11px 16px;font:inherit;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;
+         margin-bottom:-1px}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.on{color:var(--ink);font-weight:600;border-bottom-color:var(--ink)}
+.tab-lead{font-size:13.5px;color:var(--muted);margin:16px 0 4px}
+.pane{display:none}
+.pane.on{display:block}
+
+/* ------------------------------------------------------------ people tab */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px;margin-top:14px}
+.pcard{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--accent,var(--rule));
+       border-radius:9px;padding:15px 17px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.pcard:hover{border-color:var(--ink2);border-left-color:var(--accent,var(--ink2))}
+.pcard h4{margin:0 0 2px;font-size:15.5px;font-weight:600}
+.pcard .pmeta{font-size:12.5px;color:var(--muted)}
+.pnums{display:flex;gap:16px;margin-top:12px}
+.pnum{display:flex;flex-direction:column}
+.pnum b{font-size:21px;font-weight:600;line-height:1.1}
+.pnum span{font-size:11.5px;color:var(--muted)}
+.pnum.late b{color:var(--late)}
+.pnum.hold b{color:var(--hold)}
+.pnext{margin-top:11px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--soft);padding-top:9px}
+.pnext em{font-style:normal;color:var(--muted)}
+.pbar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--soft);margin-top:11px}
+.pbar i{display:block;height:100%}
+
+/* --------------------------------------------------------- gantt timeline */
+.gantt{margin-top:12px;background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:6px 0 12px}
+.g-head{display:grid;position:relative;border-bottom:1px solid var(--rule);margin-bottom:4px}
+.g-tick{font-size:11px;color:var(--muted);padding:7px 0 6px;text-align:center;
+        border-left:1px solid var(--soft);line-height:1.2}
+.g-row{display:grid;grid-template-columns:250px 1fr;gap:0;align-items:center;
+       border-bottom:1px solid var(--soft);min-height:34px}
+.g-row:last-child{border-bottom:0}
+.g-row:hover{background:#F7F9FB}
+.g-lbl{padding:6px 12px;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-lbl b{font-weight:600}
+.g-lbl span{color:var(--muted)}
+.g-track{position:relative;height:34px;border-left:1px solid var(--soft)}
+.g-grid{position:absolute;inset:0;display:grid;pointer-events:none}
+.g-grid i{border-right:1px solid var(--soft)}
+.g-bar{position:absolute;top:9px;height:16px;border-radius:3px;min-width:5px;
+       display:flex;align-items:center;padding:0 6px;font-size:10.5px;color:#fff;white-space:nowrap}
+.g-bar.wip{background:var(--wip)}
+.g-bar.hold{background:var(--hold)}
+.g-bar.idle{background:var(--wait)}
+.g-bar.late{background:var(--late)}
+.g-bar.done{background:var(--done)}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--late);opacity:.55;pointer-events:none}
+.g-none{padding:26px 16px;text-align:center;color:var(--muted);font-size:13.5px}
+.g-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 2px 0}
+.g-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+/* ------------------------------------------------------------ health tab */
+.hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
+.hcard{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:16px 18px}
+.hcard h4{margin:0 0 3px;font-size:13px;font-weight:600;color:var(--ink2)}
+.hcard .big{font-size:31px;font-weight:600;line-height:1.1}
+.hcard .big.bad{color:var(--late)}
+.hcard .big.ok{color:var(--done)}
+.hcard .big.warn{color:var(--wip)}
+.hcard p{margin:7px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.hbars{margin-top:14px}
+.hbar{display:grid;grid-template-columns:170px 1fr 48px;gap:11px;align-items:center;
+      padding:6px 0;font-size:13px}
+.hbar-t{height:9px;border-radius:5px;background:var(--soft);overflow:hidden}
+.hbar-t i{display:block;height:100%;background:var(--accent,var(--wip));border-radius:5px}
+.hbar-n{text-align:right;font-weight:600;font-size:13px}
+
 /* ------------------------------------------------------------------ hero */
 .hero-row{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin:22px 0 0;align-items:start}
 .hero-row .hero{margin:0;height:100%}
@@ -370,6 +442,15 @@ input.field{min-width:230px}
 </header>
 
 <main class="wrap">
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn on" data-tab="boards">Boards</button>
+    <button class="tab-btn" data-tab="people">People</button>
+    <button class="tab-btn" data-tab="schedule">Schedule</button>
+    <button class="tab-btn" data-tab="health">Delivery Health</button>
+  </nav>
+
+  <section class="pane on" id="pane-boards">
+  <p class="tab-lead">Every board grouped by customer. Click a board for its stage table.</p>
   <div class="hero-row">
     <section class="hero">
       <h2>Where the work is sitting</h2>
@@ -395,6 +476,24 @@ input.field{min-width:230px}
   </div>
 
   <div id="list"><div class="loading">Reading the sheet…</div></div>
+  </section>
+
+  <section class="pane" id="pane-people">
+    <p class="tab-lead">Who is carrying what. Open stages only — fabrication vendors are excluded.
+       Click anyone for their task timeline.</p>
+    <div class="pgrid" id="pgrid"></div>
+  </section>
+
+  <section class="pane" id="pane-schedule">
+    <p class="tab-lead">Every open stage placed against its EDC. The red line is today; bars that cross
+       it are running late. Stages with no EDC cannot be plotted and are listed underneath.</p>
+    <div id="sched"></div>
+  </section>
+
+  <section class="pane" id="pane-health">
+    <p class="tab-lead">How delivery is actually going, computed from the sheet. Nothing here is estimated.</p>
+    <div id="health"></div>
+  </section>
 </main>
 
 <div class="veil" id="veil"></div>
@@ -423,6 +522,83 @@ input.field{min-width:230px}
     <div id="modal-b"></div>
   </div>
 </div>
+
+<script>
+/**
+ * PEOPLE — the hardware roster, and the join between the short owner names
+ * typed into the sheet ("Samudra", "Anji") and the people they refer to.
+ *
+ * `aliases` is what makes the People tab work: stage owners are recorded as
+ * first names and sometimes combined ("Samudra + Sandhya"), so each cell is
+ * split on "+" and every part matched here.
+ *
+ * Fabricators (PCB Power, JLC, Micropack) are vendors, not staff. They are
+ * listed separately so fab stages are never counted as someone's workload.
+ */
+window.PEOPLE = (function () {
+
+  var ROSTER = [
+    { code: '',       name: 'Srinivasa Rao Supuri',      fn: 'Hardware', yoe: 14,  bill: 'Billed',
+      projects: 'FLC', plan: 'Belly Camera', billedIn: 'Belly Cam',        aliases: ['Srinivas'] },
+    { code: 'VC_124', name: 'Galipothu Sunil Kumar',     fn: 'Hardware', yoe: 18,  bill: 'Billed',
+      projects: 'FLC + TRS + Smart IP Camera', plan: 'Smart IP Camera, PVC Card', billedIn: '', aliases: ['Sunil'] },
+    { code: 'VC_176', name: 'Jampani Samudralankaiah',   fn: 'Hardware', yoe: 6.4, bill: 'Billed',
+      projects: 'FLC + Smart IP Camera + AI Edge Server + RCI ITS',
+      plan: 'Belly Camera, ZMD Edge', billedIn: 'Belly Cam, FLC',          aliases: ['Samudra'] },
+    { code: 'VC_183', name: 'Varimadla Anjaneyulu',      fn: 'Hardware', yoe: 8.1, bill: 'Billed',
+      projects: 'FLC + TRS + Internal / Web + RCI ITS',
+      plan: 'Support to all Projects', billedIn: '',                        aliases: ['Anji', 'Anjaneyulu'] },
+    { code: 'VC_224', name: 'Chintha Vivek Sai',         fn: 'Hardware', yoe: 0.1, bill: 'Billed',
+      projects: 'FLC + TRS + Smart IP Camera',
+      plan: 'need to discuss in August', billedIn: 'Belly Cam',             aliases: ['Vivek'] },
+    { code: 'VC_161', name: 'Veeresh Meeniga',           fn: 'Hardware', yoe: 2.7, bill: 'Billed',
+      projects: 'FLC + RCI ITS + RFSOC',
+      plan: 'need to discuss in Nov', billedIn: 'RCI',                      aliases: ['Veeresh'] },
+    { code: 'VC_141', name: 'Ravada Ramesh',             fn: 'Hardware', yoe: 4.2, bill: 'Billed',
+      projects: 'TRS', plan: 'need to discuss in August', billedIn: '',     aliases: ['Ramesh'] },
+    { code: 'VC_163', name: 'Ruka Nandi Vardhan Reddy',  fn: 'Hardware', yoe: 2.7, bill: 'Billed',
+      projects: 'TRS + Voila Tech + AI Edge Server',
+      plan: 'need to discuss in August', billedIn: '',                      aliases: ['Vardhan'] },
+    { code: 'VC_196', name: 'Keerthi Sepana',            fn: 'Hardware', yoe: 1.3, bill: 'Billed',
+      projects: 'TRS + Voila Tech', plan: 'need to discuss in August', billedIn: '', aliases: ['Keerthi'] },
+    { code: 'VC_200', name: 'Harika Kunduru',            fn: 'Hardware', yoe: 4,   bill: 'Billed',
+      projects: 'Smart IP Camera', plan: 'Smart IP Camera', billedIn: '',   aliases: ['Harika'] },
+    { code: 'VC_229', name: 'Bommi Sandhya',             fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '',                                 aliases: ['Sandhya'] },
+    // Appears as a stage owner but was not in the roster you sent.
+    { code: '',       name: 'Naveen',                    fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '', partial: true,                  aliases: ['Naveen'] },
+    { code: '',       name: 'Rajesh',                    fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '', partial: true,                  aliases: ['Rajesh Sir', 'Rajesh'] }
+  ];
+
+  var VENDORS = ['Pcb Power', 'PCB Power', 'JLC', 'Micropack'];
+
+  var byAlias = {};
+  ROSTER.forEach(function (p) {
+    p.aliases.forEach(function (a) { byAlias[a.toLowerCase()] = p; });
+    byAlias[p.name.toLowerCase()] = p;
+  });
+  var vendorSet = {};
+  VENDORS.forEach(function (v) { vendorSet[v.toLowerCase()] = true; });
+
+  /** Splits an owner cell into the people it names. Vendors and NA drop out. */
+  function resolve(cell) {
+    if (!cell) return [];
+    return String(cell).split('+').map(function (s) { return s.trim(); })
+      .filter(function (s) { return s && s.toUpperCase() !== 'NA' && !vendorSet[s.toLowerCase()]; })
+      .map(function (s) {
+        return byAlias[s.toLowerCase()] ||
+               { code: '', name: s, fn: '', yoe: null, bill: '', projects: '', plan: '',
+                 billedIn: '', partial: true, aliases: [s], unknown: true };
+      });
+  }
+
+  function isVendor(cell) { return !!vendorSet[String(cell || '').trim().toLowerCase()]; }
+
+  return { roster: ROSTER, resolve: resolve, isVendor: isVendor, vendors: VENDORS };
+})();
+</script>
 
 <script>
 /**
@@ -694,7 +870,7 @@ window.PCBForm = (function () {
 
 
 <script>
-var S = { boards: [], lists: {}, q: '', cust: '', stage: '', filter: 'active', open: {}, sel: null, mode: 'view' };
+var S = { boards: [], lists: {}, tab: 'boards', people: {}, q: '', cust: '', stage: '', filter: 'active', open: {}, sel: null, mode: 'view' };
 
 var STAGES = PCBForm.STAGES;                       // [key, short, full] — process order
 var CLOSED = { 'Completed': 1, 'NA': 1, 'Cancelled': 1 };
@@ -735,6 +911,7 @@ function receive(data){
   $('hdr-count').textContent = S.boards.length + ' boards';
   buildFilters();
   render();
+  if (S.tab && S.tab !== 'boards') showTab(S.tab);
 }
 
 function buildFilters(){
@@ -929,6 +1106,263 @@ function rowHtml(b){
   '</button>';
 }
 
+
+/* =========================== tasks, people, gantt =========================== */
+
+var DAY = 864e5;
+function today0(){ var t = new Date(); t.setHours(0,0,0,0); return t; }
+function dnum(iso){ var d = iso ? new Date(iso + 'T00:00:00') : null; return d && !isNaN(d) ? d : null; }
+
+/** Every open stage on every active board, as one flat task list. */
+function tasks(){
+  var out = [];
+  S.boards.filter(isActive).forEach(function(b){
+    STAGES.forEach(function(s, i){
+      var v = b.stages[s[0]] || {};
+      var st = v.status;
+      if (!st || st === 'Completed' || st === 'NA' || st === 'Cancelled') return;
+      var prev = i ? (b.stages[STAGES[i-1][0]] || {}) : {};
+      out.push({
+        board: b, stage: s, status: st, owner: v.owner || '',
+        people: PEOPLE.resolve(v.owner), vendor: PEOPLE.isVendor(v.owner),
+        edc: v.edc || '', eda: v.eda || '',
+        start: prev.eda || prev.edc || '',
+        here: b.current === s[2],
+        info: PCBForm.days(v, st)
+      });
+    });
+  });
+  return out;
+}
+function taskLate(t){
+  var e = dnum(t.edc); return e ? Math.round((today0() - e) / DAY) : 0;
+}
+
+/* ------------------------------------------------------------- people tab */
+
+function renderPeople(){
+  var T = tasks();
+  var byName = {};
+  PEOPLE.roster.forEach(function(p){
+    byName[p.name] = { p: p, open: [], late: [], hold: [], boards: {} };
+  });
+  T.forEach(function(t){
+    t.people.forEach(function(p){
+      var e = byName[p.name] || (byName[p.name] = { p: p, open: [], late: [], hold: [], boards: {} });
+      e.open.push(t);
+      e.boards[t.board.project] = 1;
+      if (taskLate(t) > 0) e.late.push(t);
+      if (t.status === 'On Hold') e.hold.push(t);
+    });
+  });
+  var names = Object.keys(byName).sort(function(a, c){
+    return byName[c].open.length - byName[a].open.length || a.localeCompare(c);
+  });
+
+  $('pgrid').innerHTML = names.map(function(n){
+    var e = byName[n], p = e.p;
+    var next = e.open.filter(function(t){ return t.edc; })
+                     .sort(function(a, c){ return a.edc < c.edc ? -1 : 1; })[0];
+    var wip = e.open.filter(function(t){ return t.status === 'In Progress'; }).length;
+    var idle = e.open.length - wip - e.hold.length;
+    var tot = Math.max(e.open.length, 1);
+    var seg = function(n2, cls){ return n2 ? '<i class="' + cls + '" style="width:' + (n2 / tot * 100) + '%"></i>' : ''; };
+    return '<button class="pcard" data-person="' + esc(n) + '" style="--accent:' + accent(n) + '">' +
+      '<h4>' + esc(n) + (p.partial ? ' <span class="co-sub">not in roster</span>' : '') + '</h4>' +
+      '<div class="pmeta">' + esc(p.code || '—') +
+        (p.yoe != null ? ' · ' + p.yoe + ' yrs' : '') +
+        (p.bill ? ' · ' + esc(p.bill) : '') + '</div>' +
+      '<div class="pnums">' +
+        '<span class="pnum"><b>' + e.open.length + '</b><span>open stages</span></span>' +
+        '<span class="pnum"><b>' + Object.keys(e.boards).length + '</b><span>boards</span></span>' +
+        '<span class="pnum late"><b>' + e.late.length + '</b><span>past EDC</span></span>' +
+        '<span class="pnum hold"><b>' + e.hold.length + '</b><span>on hold</span></span>' +
+      '</div>' +
+      '<div class="pbar">' + seg(wip, 'g-bar wip') + seg(e.hold.length, 'g-bar hold') + seg(idle, 'g-bar idle') + '</div>' +
+      '<div class="pnext">' + (next
+        ? 'Next due: <b>' + esc(next.board.project) + '</b> · ' + esc(next.stage[1]) + ' · ' + fmt(next.edc)
+        : '<em>' + (e.open.length ? 'no EDC set on any of their stages' : 'nothing open') + '</em>') + '</div>' +
+    '</button>';
+  }).join('') || '<div class="empty"><b>No open stages</b>Nothing is assigned right now.</div>';
+  S.people = byName;
+}
+
+/* --------------------------------------------------------------- the gantt */
+
+/**
+ * A stage bar runs from the previous stage's completion (its EDA, or EDC if the
+ * board never recorded one) to this stage's EDC. Where there is no earlier date
+ * the bar starts at today, so nothing is invented — a stage with no EDC at all
+ * cannot be placed and is listed separately.
+ */
+function gantt(list, showOwner){
+  var dated = list.filter(function(t){ return dnum(t.edc); });
+  var undated = list.filter(function(t){ return !dnum(t.edc); });
+  if (!dated.length) {
+    return '<div class="gantt"><div class="g-none">Nothing here has an EDC yet, so there is nothing to plot.</div></div>' +
+           undatedList(undated);
+  }
+  var now = today0();
+  var lo = new Date(now), hi = new Date(now);
+  dated.forEach(function(t){
+    var e = dnum(t.edc), s = dnum(t.start) || e;
+    if (s < lo) lo = s;
+    if (e > hi) hi = e;
+  });
+  lo = new Date(lo.getTime() - 5 * DAY);
+  hi = new Date(hi.getTime() + 5 * DAY);
+  var span = Math.max(hi - lo, DAY);
+  var pos = function(d){ return ((d - lo) / span) * 100; };
+
+  // month ticks
+  var ticks = [], cur = new Date(lo.getFullYear(), lo.getMonth(), 1);
+  while (cur <= hi) { ticks.push(new Date(cur)); cur.setMonth(cur.getMonth() + 1); }
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var cols = ticks.map(function(){ return '1fr'; }).join(' ');
+  var head = '<div class="g-row" style="border-bottom:1px solid var(--rule)">' +
+    '<div class="g-lbl"><span>Board · stage</span></div>' +
+    '<div class="g-head" style="grid-template-columns:' + cols + ';border:0;margin:0">' +
+      ticks.map(function(t){ return '<div class="g-tick">' + M[t.getMonth()] + ' ' + String(t.getFullYear()).slice(2) + '</div>'; }).join('') +
+    '</div></div>';
+
+  var rows = dated.sort(function(a, c){ return a.edc < c.edc ? -1 : 1; }).map(function(t){
+    var e = dnum(t.edc), s = dnum(t.start) || (e < now ? e : now);
+    if (s > e) s = e;
+    var late = taskLate(t) > 0;
+    var barEnd = late ? now : e;
+    var l = pos(s), r = pos(barEnd);
+    var cls = late ? 'late' : (t.status === 'On Hold' ? 'hold' : (t.status === 'In Progress' ? 'wip' : 'idle'));
+    return '<div class="g-row" data-p="' + esc(t.board.project) + '">' +
+      '<div class="g-lbl"><b>' + esc(t.board.project) + '</b> <span>· ' + esc(t.stage[1]) +
+        (showOwner && t.owner ? ' · ' + esc(t.owner) : '') + '</span></div>' +
+      '<div class="g-track">' +
+        '<div class="g-grid" style="grid-template-columns:' + cols + '">' +
+          ticks.map(function(){ return '<i></i>'; }).join('') + '</div>' +
+        '<div class="g-bar ' + cls + '" style="left:' + l + '%;width:' + Math.max(r - l, 0.6) + '%" ' +
+          'title="' + esc(t.stage[2] + ' · EDC ' + t.edc + ' · ' + t.info.t) + '">' + esc(t.info.t) + '</div>' +
+        '<div class="g-today" style="left:' + pos(now) + '%"></div>' +
+      '</div></div>';
+  }).join('');
+
+  return '<div class="gantt">' + head + rows + '</div>' +
+    '<div class="g-key">' +
+      '<span><i class="g-bar wip" style="background:var(--wip)"></i>In progress</span>' +
+      '<span><i class="g-bar hold" style="background:var(--hold)"></i>On hold</span>' +
+      '<span><i class="g-bar idle" style="background:var(--wait)"></i>Not started</span>' +
+      '<span><i class="g-bar late" style="background:var(--late)"></i>Past EDC</span>' +
+      '<span><i style="background:var(--late);width:2px"></i>Today</span>' +
+    '</div>' + undatedList(undated);
+}
+
+function undatedList(list){
+  if (!list.length) return '';
+  return '<div class="note" style="margin-top:14px">' + list.length +
+    ' stage' + (list.length === 1 ? '' : 's') + ' cannot be plotted because no EDC has been set: ' +
+    esc(list.map(function(t){ return t.board.project + ' (' + t.stage[1] + ')'; }).join(', ')) + '</div>';
+}
+
+function renderSchedule(){ $('sched').innerHTML = gantt(tasks(), true); }
+
+/* ------------------------------------------------------- delivery health */
+
+function renderHealth(){
+  var act = S.boards.filter(isActive);
+  var T = tasks();
+  var late = T.filter(function(t){ return taskLate(t) > 0; });
+  var noEdc = T.filter(function(t){ return !t.edc; });
+  var onHold = act.filter(function(b){ return b.overall === 'On Hold'; });
+  var noReason = onHold.filter(function(b){ return !b.holdreason; });
+
+  var loadBy = {};
+  T.forEach(function(t){ t.people.forEach(function(p){ loadBy[p.name] = (loadBy[p.name] || 0) + 1; }); });
+  var loadNames = Object.keys(loadBy).sort(function(a, c){ return loadBy[c] - loadBy[a]; });
+  var loadMax = loadNames.length ? loadBy[loadNames[0]] : 1;
+  var totalLoad = T.length || 1;
+  var top = loadNames.length ? Math.round(loadBy[loadNames[0]] / totalLoad * 100) : 0;
+
+  var coverage = T.length ? Math.round((T.length - noEdc.length) / T.length * 100) : 0;
+
+  var stageMix = STAGES.map(function(s){
+    var n = T.filter(function(t){ return t.stage[0] === s[0]; }).length;
+    var l = T.filter(function(t){ return t.stage[0] === s[0] && taskLate(t) > 0; }).length;
+    return { s: s, n: n, l: l };
+  });
+  var mixMax = Math.max.apply(null, stageMix.map(function(x){ return x.n; }).concat([1]));
+
+  $('health').innerHTML =
+    '<div class="hgrid">' +
+      card(coverage + '%', coverage >= 80 ? 'ok' : (coverage >= 50 ? 'warn' : 'bad'), 'EDC coverage',
+        noEdc.length + ' of ' + T.length + ' open stages have no expected completion date. Delay reporting is blind on those.') +
+      card(String(late.length), late.length ? 'bad' : 'ok', 'Stages past EDC',
+        'Across ' + new Set(late.map(function(t){ return t.board.project; })).size + ' boards.') +
+      card(top + '%', top >= 25 ? 'bad' : (top >= 18 ? 'warn' : 'ok'), 'Busiest person\u2019s share',
+        (loadNames[0] || '—') + ' holds ' + (loadBy[loadNames[0]] || 0) + ' of ' + T.length +
+        ' open stages. One person\u2019s absence stalls that much work.') +
+      card(noReason.length + '/' + onHold.length, noReason.length ? 'warn' : 'ok', 'Holds with no reason',
+        'A hold without a recorded reason cannot be escalated or counted.') +
+    '</div>' +
+
+    '<div class="hcard" style="margin-top:12px"><h4>Open stages per person</h4>' +
+      '<p>Fabrication vendors excluded. Bars are open stages, red is the share already past EDC.</p>' +
+      '<div class="hbars">' + loadNames.map(function(n){
+        var lateN = T.filter(function(t){ return taskLate(t) > 0 &&
+          t.people.some(function(p){ return p.name === n; }); }).length;
+        return '<div class="hbar"><span>' + esc(n) + '</span>' +
+          '<span class="hbar-t" style="--accent:' + accent(n) + '">' +
+            '<i style="width:' + (loadBy[n] / loadMax * 100) + '%;background:linear-gradient(90deg,' +
+              accent(n) + ' ' + (100 - lateN / loadBy[n] * 100) + '%,var(--late) ' +
+              (100 - lateN / loadBy[n] * 100) + '%)"></i></span>' +
+          '<span class="hbar-n">' + loadBy[n] + '</span></div>';
+      }).join('') + '</div></div>' +
+
+    '<div class="hcard" style="margin-top:12px"><h4>Where the queue is deepest</h4>' +
+      '<p>Open stages by process step, regardless of which board they sit on.</p>' +
+      '<div class="hbars">' + stageMix.map(function(x, i){
+        return '<div class="hbar"><span>' + esc(x.s[1]) + '</span>' +
+          '<span class="hbar-t"><i style="width:' + (x.n / mixMax * 100) + '%;background:' + STAGE_HUE[i] + '"></i></span>' +
+          '<span class="hbar-n">' + x.n + (x.l ? ' <span style="color:var(--late)">·' + x.l + '</span>' : '') + '</span></div>';
+      }).join('') + '</div></div>';
+}
+
+function card(big, cls, title, note){
+  return '<div class="hcard"><h4>' + esc(title) + '</h4>' +
+    '<div class="big ' + cls + '">' + big + '</div><p>' + note + '</p></div>';
+}
+
+/* ------------------------------------------------------------- tab wiring */
+
+function showTab(name){
+  S.tab = name;
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    b.classList.toggle('on', b.getAttribute('data-tab') === name); });
+  document.querySelectorAll('.pane').forEach(function(p){
+    p.classList.toggle('on', p.id === 'pane-' + name); });
+  if (name === 'people') renderPeople();
+  if (name === 'schedule') renderSchedule();
+  if (name === 'health') renderHealth();
+}
+
+function showPerson(name){
+  var e = S.people[name];
+  if (!e) return;
+  var p = e.p;
+  $('modal-title').textContent = name;
+  $('modal-sub').textContent = [p.code, p.yoe != null ? p.yoe + ' yrs' : '', p.bill, p.projects]
+    .filter(Boolean).join(' · ') || 'Not in the roster you supplied';
+  $('modal-b').innerHTML =
+    '<div class="form">' +
+      (p.plan ? '<div class="cmt">Plan: ' + esc(p.plan) + (p.billedIn ? ' · Billed in ' + esc(p.billedIn) : '') + '</div>' : '') +
+      (p.partial ? '<div class="note">This name appears as a stage owner in the sheet but was not in the roster. ' +
+                   'Add their row so the People tab can show grade, billing and project allocation.</div>' : '') +
+      '<h4>' + e.open.length + ' open stage' + (e.open.length === 1 ? '' : 's') + '</h4>' +
+      gantt(e.open, false) +
+    '</div>' +
+    '<div class="bar"><button class="btn" id="pm-close">Close</button></div>';
+  $('pm-close').onclick = closeModal;
+  openModal();
+  S.mode = 'view';
+}
+
 /* ------------------------------------------------------------ slide-over */
 
 function openPanel(){ $('veil').classList.add('on'); $('panel').classList.add('on'); }
@@ -990,6 +1424,15 @@ function showForm(board){
 /* ------------------------------------------------------------------ wire */
 
 document.addEventListener('click', function(e){
+  var tb = e.target.closest('.tab-btn');
+  if (tb) return showTab(tb.getAttribute('data-tab'));
+
+  var pc = e.target.closest('.pcard');
+  if (pc) return showPerson(pc.getAttribute('data-person'));
+
+  var gr = e.target.closest('.g-row[data-p]');
+  if (gr) { closeModal(); return showBoard(gr.getAttribute('data-p')); }
+
   var row = e.target.closest('.row');
   if (row) return showBoard(row.getAttribute('data-p'));
 
