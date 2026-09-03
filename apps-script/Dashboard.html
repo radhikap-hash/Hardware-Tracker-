@@ -46,6 +46,57 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn[disabled]{opacity:.5;cursor:default}
 
 /* ------------------------------------------------------------------ hero */
+.hero-row{display:grid;grid-template-columns:1.55fr 1fr;gap:12px;margin:22px 0 0;align-items:start}
+.hero-row .hero{margin:0;height:100%}
+
+/* company-wise completion */
+.co{display:flex;flex-direction:column;gap:9px;max-height:210px;overflow:auto;padding-right:4px}
+.co-row{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;
+        background:none;border:0;padding:3px 2px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.co-row:hover .co-name{color:var(--ink)}
+.co-row.on .co-name{color:var(--ink);font-weight:600}
+.co-name{font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:7px;line-height:1.25}
+.co-name i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;font-style:normal}
+.co-track{height:7px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}
+.co-fill{height:100%;background:var(--accent);border-radius:4px}
+.co-pct{font-size:14px;font-weight:600;text-align:right}
+.co-sub{font-size:11.5px;color:var(--muted);font-weight:450}
+
+/* ---------------------------------------------------------- stage tables */
+.stbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.stbl th{text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:0 9px 7px;
+         border-bottom:1px solid var(--rule);white-space:nowrap}
+.stbl td{padding:8px 9px;border-bottom:1px solid var(--soft);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:0}
+.stbl .sn{width:38px;font-weight:600;font-size:12.5px;color:var(--ink2);background:var(--soft);
+          border-radius:4px;text-align:center;padding:5px 0}
+.stbl .snc{width:46px;padding-right:0}
+.stbl .nm{font-weight:500;white-space:nowrap}
+.stbl tr[data-s="NA"] .nm{text-decoration:line-through;color:var(--muted)}
+.stbl tr[data-s="NA"] td{color:var(--muted)}
+.stbl tr.here{background:#F4F7FB;box-shadow:inset 3px 0 0 var(--ink)}
+.stbl .num{white-space:nowrap;font-size:13px}
+.stbl .num.late{color:var(--late);font-weight:600}
+.stbl .num.ok{color:var(--done)}
+.stbl .num.soon{color:var(--wip)}
+.stbl .num.none{color:var(--muted)}
+.stbl .cmt-cell{font-size:12.5px;color:var(--ink2);min-width:150px}
+.stbl .dash{color:var(--rule)}
+.stbl input,.stbl select{border:1px solid var(--rule);border-radius:5px;padding:6px 7px;
+   font-size:13px;width:100%;background:var(--card);min-width:0}
+.stbl input:focus,.stbl select:focus{border-color:var(--focus);outline:none}
+.tbl-wrap{overflow-x:auto;margin-top:4px}
+
+/* ------------------------------------------------------------ modal popup */
+.modal{position:fixed;inset:0;display:none;z-index:70;align-items:flex-start;justify-content:center;
+       padding:36px 18px;overflow:auto}
+.modal.on{display:flex}
+.modal-box{background:var(--card);border-radius:11px;width:min(1040px,100%);
+           box-shadow:0 18px 48px rgba(16,26,38,.28);display:flex;flex-direction:column}
+.modal-h{padding:18px 24px 14px;border-bottom:1px solid var(--rule);display:flex;gap:12px;align-items:flex-start}
+.modal-h h3{margin:0;font-size:19px;font-weight:600;line-height:1.25}
+.modal-h .meta{margin-top:2px}
+
 .hero{margin:22px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:20px 22px 14px}
 .hero h2{margin:0 0 2px;font-size:17px;font-weight:600}
 .hero p{margin:0 0 20px;color:var(--muted);font-size:13.5px}
@@ -251,6 +302,58 @@ input.field{min-width:230px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+<style>
+/* ---------------------------------------------------- stage tables (view + edit) */
+.stbl{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+.stbl th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;
+         padding:7px 9px;border-bottom:1.5px solid var(--rule);white-space:nowrap}
+.stbl td{padding:8px 9px;border-bottom:1px solid var(--soft);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:0}
+.stbl .sn{width:38px;font-weight:600;font-size:12.5px;color:var(--ink2);
+          background:var(--soft);text-align:center;border-radius:4px}
+.stbl .snm{font-weight:500;white-space:nowrap}
+.stbl tr[data-s="NA"] .snm{text-decoration:line-through;color:var(--muted)}
+.stbl tr[data-s="NA"] td{color:var(--muted)}
+.stbl tr.here{background:#F5F8FC;box-shadow:inset 3px 0 0 var(--ink)}
+.stbl .num{white-space:nowrap;font-size:13px}
+.stbl .num.late{color:var(--late);font-weight:600}
+.stbl .num.ok{color:var(--done)}
+.stbl .num.none{color:var(--muted)}
+.stbl .cmt{color:var(--ink2);font-size:12.5px}
+.stbl input,.stbl select{width:100%;border:1px solid var(--rule);border-radius:5px;
+       padding:6px 7px;font-size:13.5px;background:var(--card);min-width:0}
+.stbl input:focus,.stbl select:focus{border-color:var(--focus);outline:none}
+.stbl input[type=date]{min-width:132px}
+.tbl-wrap{overflow-x:auto;margin:0 -2px}
+
+/* ------------------------------------------------------------- centred modal */
+.modal{position:fixed;inset:0;z-index:80;display:none;align-items:flex-start;justify-content:center;
+       padding:34px 18px;overflow:auto;background:rgba(18,28,40,.45)}
+.modal.on{display:flex}
+.modal-box{background:var(--card);border-radius:11px;width:min(1020px,100%);
+           box-shadow:0 18px 48px rgba(12,21,33,.28);display:flex;flex-direction:column;max-height:100%}
+.modal-h{padding:18px 24px 15px;border-bottom:1px solid var(--rule);display:flex;gap:14px;align-items:flex-start}
+.modal-h h3{margin:0;font-size:19px;font-weight:600}
+.modal-h .meta{margin-top:2px}
+.modal-b{padding:20px 24px 24px;overflow:auto}
+.modal-f{padding:14px 24px;border-top:1px solid var(--rule);background:#FAFBFC;
+         display:flex;gap:9px;align-items:center;border-radius:0 0 11px 11px}
+
+/* ------------------------------------------------- company progress panel */
+.heros{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;margin:22px 0 0;align-items:start}
+.co{max-height:330px;overflow:auto}
+.co-row{display:grid;grid-template-columns:1fr 54px;gap:10px;align-items:center;padding:7px 0;
+        border-bottom:1px solid var(--soft)}
+.co-row:last-child{border-bottom:0}
+.co-name{font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:7px;min-width:0}
+.co-name i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;font-style:normal}
+.co-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-track{grid-column:1/-1;height:7px;border-radius:4px;background:var(--soft);overflow:hidden;margin-top:-2px}
+.co-fill{height:100%;background:var(--accent);border-radius:4px}
+.co-pct{font-size:14px;font-weight:600;text-align:right}
+.co-sub{grid-column:1/-1;font-size:11.5px;color:var(--muted);margin-top:3px}
+@media (max-width:900px){ .heros{grid-template-columns:1fr} }
+</style>
 
 </head>
 <body>
@@ -267,11 +370,18 @@ input.field{min-width:230px}
 </header>
 
 <main class="wrap">
-  <section class="hero">
-    <h2>Where the work is sitting</h2>
-    <p>Every active board counted against the stage it is waiting at right now.</p>
-    <div class="load" id="load"></div>
-  </section>
+  <div class="hero-row">
+    <section class="hero">
+      <h2>Where the work is sitting</h2>
+      <p>Every active board counted against the stage it is waiting at right now.</p>
+      <div class="load" id="load"></div>
+    </section>
+    <section class="hero">
+      <h2>Company-wise completion</h2>
+      <p>Stages finished as a share of the stages that apply to each customer's boards.</p>
+      <div class="co" id="co"></div>
+    </section>
+  </div>
 
   <section class="stats" id="stats"></section>
 
@@ -301,26 +411,47 @@ input.field{min-width:230px}
   <div class="panel-f" id="panel-f"></div>
 </aside>
 
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <div class="modal-h">
+      <div>
+        <h3 id="modal-title">Board</h3>
+        <div class="meta" id="modal-sub"></div>
+      </div>
+      <button class="close" id="modal-x" aria-label="Close">&times;</button>
+    </div>
+    <div id="modal-b"></div>
+  </div>
+</div>
+
 <script>
 /**
- * PCBForm.mount(el, opts)
- *   opts.board   existing board object, or null for a new one
- *   opts.lists   { statuses, stages, reasons, customers }
- *   opts.onSaved callback(result)
- *   opts.onCancel
- * Works inside the Sheets modal and inside the dashboard.
+ * PCBForm — the stage table shared by the sidebar and both popups.
+ *
+ *   PCBForm.viewTable(board)    read-only table for the sidebar
+ *   PCBForm.mount(el, opts)     editable table for the popups
+ *     opts.board    existing board, or null for a new one
+ *     opts.lists    { statuses, stages, reasons, holdReasons, customers }
+ *     opts.onSaved  callback(result)
+ *     opts.onCancel
+ *
+ * EDC is the expected date of completion, EDA the actual one.
+ * The comment belongs to the board rather than the stage, so it shows and is
+ * editable only on the row of the stage the board is stuck at.
  */
 window.PCBForm = (function () {
+
   var STAGES = [
-    ['SCH', 'Schematic', 'S1 Schematic'],
-    ['LAY', 'Layout',    'S2 PCB Layout'],
-    ['SIPI','SI & PI',   'S3 SI & PI'],
-    ['FAB', 'Fab',       'S4 Bare-PCB Fab'],
-    ['ASM', 'Assembly',  'S5 Assembly'],
-    ['BRU', 'Bring-up',  'S6 Bring-up'],
-    ['BOM', 'BOM',       'S7 BOM Procurement']
+    ['SCH',  'Schematic Design',     'S1 Schematic',       'S1'],
+    ['LAY',  'PCB Layout / Design',  'S2 PCB Layout',      'S2'],
+    ['SIPI', 'SI & PI Simulation',   'S3 SI & PI',         'S3'],
+    ['FAB',  'Bare-PCB Fabrication', 'S4 Bare-PCB Fab',    'S4'],
+    ['ASM',  'Assembly',             'S5 Assembly',        'S5'],
+    ['BRU',  'Bring-up',             'S6 Bring-up',        'S6'],
+    ['BOM',  'BOM Procurement',      'S7 BOM Procurement', 'S7']
   ];
-  var CLOSED = { 'Completed':1, 'NA':1, 'Cancelled':1 };
+  var CLOSED = { 'Completed': 1, 'NA': 1, 'Cancelled': 1 };
+  var DAY = 864e5;
 
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
@@ -334,10 +465,45 @@ window.PCBForm = (function () {
     return h;
   }
 
-  /** Mirrors the sheet formula so the form can tell you where the board will land. */
+  function midnight(iso){ var d = new Date(iso + 'T00:00:00'); return isNaN(d) ? null : d; }
+  function today0(){ var t = new Date(); t.setHours(0, 0, 0, 0); return t; }
+
+  function fmtShort(iso){
+    if (!iso) return '';
+    var p = String(iso).split('-'); if (p.length !== 3) return iso;
+    var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return p[2] + ' ' + M[+p[1] - 1];
+  }
+
+  /**
+   * The days column. Three cases:
+   *   running, EDC ahead   -> days left to complete
+   *   running, EDC passed  -> delayed by N
+   *   finished             -> EDA measured against EDC
+   */
+  function days(v, status){
+    if (!status || status === 'NA' || status === 'Cancelled') return { t: '', c: 'none' };
+    var edc = v.edc ? midnight(v.edc) : null;
+    var eda = v.eda ? midnight(v.eda) : null;
+    if (status === 'Completed' || eda) {
+      if (!eda) return { t: 'completed, no EDA', c: 'none' };
+      if (!edc) return { t: 'done ' + fmtShort(v.eda), c: 'ok' };
+      var d = Math.round((eda - edc) / DAY);
+      if (d > 0) return { t: 'delayed by ' + d + ' day' + (d === 1 ? '' : 's'), c: 'late' };
+      if (d < 0) return { t: (-d) + ' day' + (d === -1 ? '' : 's') + ' early', c: 'ok' };
+      return { t: 'on time', c: 'ok' };
+    }
+    if (!edc) return { t: 'no EDC set', c: 'none' };
+    var left = Math.round((edc - today0()) / DAY);
+    if (left < 0) return { t: 'delayed by ' + (-left) + ' day' + (left === -1 ? '' : 's'), c: 'late' };
+    if (left === 0) return { t: 'due today', c: 'soon' };
+    return { t: left + ' day' + (left === 1 ? '' : 's') + ' to complete', c: left <= 7 ? 'soon' : '' };
+  }
+
+  /** Mirrors the sheet formula so a popup can say where the board will land. */
   function verdict(st){
-    var cancelled = STAGES.some(function(s){ return st[s[0]] === 'Cancelled'; });
-    if (cancelled) return { stage: 'All Stages Closed', status: 'Cancelled' };
+    if (STAGES.some(function(s){ return st[s[0]] === 'Cancelled'; }))
+      return { stage: 'All Stages Closed', status: 'Cancelled' };
     for (var i = 0; i < STAGES.length; i++) {
       var v = st[STAGES[i][0]] || '';
       if (!CLOSED[v]) return { stage: STAGES[i][2], status: v || 'Not Recorded' };
@@ -345,29 +511,61 @@ window.PCBForm = (function () {
     return { stage: 'All Stages Closed', status: 'Completed' };
   }
 
+  /* ------------------------------------------- read-only table (sidebar) */
+
+  function viewTable(b){
+    var rows = STAGES.map(function(s){
+      var v = b.stages[s[0]] || {};
+      var st = v.status || '';
+      var here = b.current === s[2];
+      var dd = days(v, st);
+      return '<tr data-s="' + esc(st) + '"' + (here ? ' class="here"' : '') + '>' +
+        '<td class="snc"><div class="sn">' + s[3] + '</div></td>' +
+        '<td class="nm">' + esc(s[1]) + '</td>' +
+        '<td>' + (v.owner ? esc(v.owner) : '<span class="dash">—</span>') + '</td>' +
+        '<td><span class="chip" data-s="' + esc(st) + '">' + esc(st || 'not set') + '</span></td>' +
+        '<td class="num ' + dd.c + '">' + (dd.t ? esc(dd.t) : '<span class="dash">—</span>') + '</td>' +
+        '<td class="cmt-cell">' + (here && b.comment ? esc(b.comment) : '<span class="dash">—</span>') + '</td>' +
+      '</tr>';
+    }).join('');
+    return '<div class="tbl-wrap"><table class="stbl">' +
+      '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th>' +
+      '<th>Days took to complete / delayed by</th><th>Comments</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+
+  /* ------------------------------------------------ editable table (popup) */
+
   function mount(el, o){
-    var b = o.board || { stages:{}, customer:'', manager:'', comment:'', notes:'', respin:'No' };
+    var b = o.board || { stages: {}, customer: '', manager: '', comment: '', notes: '', respin: 'No' };
     var L = o.lists || {};
     var isNew = !o.board;
+    var cur = isNew ? '' : b.current;
 
     var rows = STAGES.map(function(s){
       var v = (b.stages && b.stages[s[0]]) || {};
-      return '<div class="srow">' +
-        '<span>' + esc(s[1]) + '</span>' +
-        '<input data-k="owner" data-s="' + s[0] + '" placeholder="Owner" value="' + esc(v.owner) + '">' +
-        '<select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, v.status || 'NA') + '</select>' +
-        '<input data-k="target" data-s="' + s[0] + '" type="date" value="' + esc(v.target) + '">' +
-      '</div>';
+      var here = cur === s[2];
+      return '<tr data-s="' + esc(v.status || 'NA') + '" data-row="' + s[0] + '"' + (here ? ' class="here"' : '') + '>' +
+        '<td class="snc"><div class="sn">' + s[3] + '</div></td>' +
+        '<td class="nm">' + esc(s[1]) + '</td>' +
+        '<td><input data-k="owner" data-s="' + s[0] + '" placeholder="Owner" value="' + esc(v.owner) + '"></td>' +
+        '<td><select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, v.status || 'NA') + '</select></td>' +
+        '<td><input data-k="edc" data-s="' + s[0] + '" type="date" value="' + esc(v.edc) + '"></td>' +
+        (isNew ? '' :
+          '<td><input data-k="eda" data-s="' + s[0] + '" type="date" value="' + esc(v.eda) + '"></td>' +
+          '<td class="cmt-cell">' +
+            (here ? '<input id="pf-cm" placeholder="Latest comment" value="' + esc(b.comment) + '">'
+                  : '<span class="dash">—</span>') + '</td>') +
+      '</tr>';
     }).join('');
 
     el.innerHTML =
       '<div class="form">' +
-        '<h4>Board</h4>' +
         '<div class="f-grid">' +
           '<div class="f"><label for="pf-p">Project or board name</label>' +
-            '<input id="pf-p" value="' + esc(b.project) + '"' + (isNew ? '' : '') + '></div>' +
+            '<input id="pf-p" value="' + esc(b.project) + '" placeholder="e.g. Netra_POE_Plus"></div>' +
           '<div class="f"><label for="pf-c">Customer</label>' +
-            '<input id="pf-c" list="pf-cl" value="' + esc(b.customer) + '">' +
+            '<input id="pf-c" list="pf-cl" value="' + esc(b.customer) + '" placeholder="Pick one, or type a new customer">' +
             '<datalist id="pf-cl">' + opts(L.customers, '') + '</datalist></div>' +
           '<div class="f"><label for="pf-m">Project manager</label>' +
             '<input id="pf-m" value="' + esc(b.manager) + '"></div>' +
@@ -375,13 +573,22 @@ window.PCBForm = (function () {
             '<input id="pf-r" value="' + esc(b.rev) + '"></div>' +
         '</div>' +
 
-        '<h4>Stages</h4>' + rows +
+        '<h4>Stages</h4>' +
+        '<div class="tbl-wrap"><table class="stbl">' +
+          '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th><th>EDC</th>' +
+            (isNew ? '' : '<th>EDA</th><th>Comments</th>') + '</tr></thead>' +
+          '<tbody>' + rows + '</tbody></table></div>' +
 
-        '<h4>Notes</h4>' +
-        '<div class="f"><label for="pf-cm">Latest comment</label>' +
-          '<textarea id="pf-cm">' + esc(b.comment) + '</textarea></div>' +
-        '<div class="f" style="margin-top:10px"><label for="pf-nt">Notes and data checks</label>' +
-          '<textarea id="pf-nt">' + esc(b.notes) + '</textarea></div>' +
+        (isNew ? '<div class="f" style="margin-top:16px"><label for="pf-cm2">Latest comment</label>' +
+                 '<input id="pf-cm2" placeholder="Optional"></div>' : '') +
+
+        '<div class="f-grid" style="margin-top:16px">' +
+          (isNew ? '' :
+            '<div class="f"><label for="pf-hr">Hold or delay reason</label>' +
+              '<select id="pf-hr">' + opts(L.holdReasons, b.holdreason, 'Not recorded') + '</select></div>') +
+          '<div class="f"><label for="pf-nt">Notes and data checks</label>' +
+            '<input id="pf-nt" value="' + esc(b.notes) + '"></div>' +
+        '</div>' +
 
         (b.sheet === 'COMPLETED' ?
         '<div class="respin-box">' +
@@ -398,7 +605,7 @@ window.PCBForm = (function () {
         '<div class="verdict" id="pf-v"></div>' +
       '</div>' +
       '<div class="bar">' +
-        '<button class="btn btn-solid" id="pf-save">' + (isNew ? 'Add board' : 'Save changes') + '</button>' +
+        '<button class="btn btn-solid" id="pf-save">' + (isNew ? 'Add this board' : 'Save changes') + '</button>' +
         '<button class="btn" id="pf-cancel">Cancel</button>' +
         '<span class="msg" id="pf-msg"></span>' +
       '</div>';
@@ -408,25 +615,32 @@ window.PCBForm = (function () {
 
     function read(){
       var st = {};
-      STAGES.forEach(function(s){ st[s[0]] = { owner:'', status:'NA', target:'' }; });
-      el.querySelectorAll('[data-s]').forEach(function(node){
-        st[node.getAttribute('data-s')][node.getAttribute('data-k')] = node.value;
+      STAGES.forEach(function(s){ st[s[0]] = { owner: '', status: 'NA', edc: '', eda: '' }; });
+      el.querySelectorAll('[data-s][data-k]').forEach(function(n){
+        st[n.getAttribute('data-s')][n.getAttribute('data-k')] = n.value;
       });
+      var cm = $('pf-cm') || $('pf-cm2');
       return {
         project: $('pf-p').value.trim(),
         customer: $('pf-c').value.trim(),
         manager: $('pf-m').value.trim(),
         rev: $('pf-r').value.trim(),
-        comment: $('pf-cm').value.trim(),
+        comment: cm ? cm.value.trim() : '',
+        holdreason: $('pf-hr') ? $('pf-hr').value : '',
         notes: $('pf-nt').value.trim(),
         stages: st,
         originalProject: b.project || ''
       };
     }
 
+    /** Keeps the NA strike-through live while the status dropdowns change. */
     function paint(){
       var st = {};
       el.querySelectorAll('[data-k="status"]').forEach(function(n){ st[n.getAttribute('data-s')] = n.value; });
+      STAGES.forEach(function(s){
+        var tr = el.querySelector('[data-row="' + s[0] + '"]');
+        if (tr) tr.setAttribute('data-s', st[s[0]] || 'NA');
+      });
       var v = verdict(st);
       var sheet = (v.status === 'Completed' || v.status === 'Cancelled') ? 'COMPLETED' : 'ACTIVE';
       $('pf-v').innerHTML = 'Current stage <b>' + esc(v.stage) + '</b> · status <b>' + esc(v.status) + '</b><br>' +
@@ -454,7 +668,8 @@ window.PCBForm = (function () {
 
     $('pf-save').addEventListener('click', function(){
       var p = read();
-      if (!p.project) { msg.className = 'msg bad'; msg.textContent = 'Give the board a name first.'; return; }
+      if (!p.project)  { msg.className = 'msg bad'; msg.textContent = 'Give the board a name first.'; return; }
+      if (!p.customer) { msg.className = 'msg bad'; msg.textContent = 'Pick a customer, or type a new one.'; return; }
       run('saveBoard', p, 'Saving…');
     });
     $('pf-cancel').addEventListener('click', function(){ if (o.onCancel) o.onCancel(); });
@@ -465,13 +680,15 @@ window.PCBForm = (function () {
         if (!stage) { msg.className = 'msg bad'; msg.textContent = 'Pick the stage the board re-enters at.'; return; }
         run('respinBoard', {
           project: b.project, reentry: stage, reason: $('pf-rr').value,
-          raised: new Date().toISOString().slice(0, 10), comment: $('pf-cm').value.trim()
+          raised: new Date().toISOString().slice(0, 10),
+          comment: $('pf-cm') ? $('pf-cm').value.trim() : ''
         }, 'Sending back to Active…');
       });
     }
   }
 
-  return { mount: mount, verdict: verdict, STAGES: STAGES };
+  return { mount: mount, verdict: verdict, viewTable: viewTable,
+           days: days, fmtShort: fmtShort, STAGES: STAGES };
 })();
 </script>
 
@@ -580,6 +797,33 @@ function render(){
     '</button>';
   }).join('');
 
+  // company-wise completion: finished stages over stages that apply
+  var byCo = {};
+  S.boards.forEach(function(b){
+    var c = byCo[b.customer] || (byCo[b.customer] = { done: 0, scope: 0, n: 0, closed: 0 });
+    c.n++;
+    if (!isActive(b)) c.closed++;
+    STAGES.forEach(function(s){
+      var st = (b.stages[s[0]] || {}).status;
+      if (!st || st === 'NA' || st === 'Cancelled') return;
+      c.scope++; if (st === 'Completed') c.done++;
+    });
+  });
+  var coNames = Object.keys(byCo).sort(function(a, c){
+    return (byCo[a].done / (byCo[a].scope || 1)) - (byCo[c].done / (byCo[c].scope || 1));
+  });
+  $('co').innerHTML = coNames.map(function(name){
+    var c = byCo[name];
+    var pct = c.scope ? Math.round((c.done / c.scope) * 100) : 0;
+    return '<button class="co-row' + (S.cust === name ? ' on' : '') + '" data-co="' + esc(name) +
+             '" style="--accent:' + accent(name) + '">' +
+      '<span><span class="co-name"><i></i>' + esc(name) +
+        ' <span class="co-sub">' + c.closed + '/' + c.n + ' boards closed</span></span>' +
+        '<span class="co-track"><span class="co-fill" style="width:' + pct + '%"></span></span></span>' +
+      '<span class="co-pct">' + pct + '%</span>' +
+    '</button>';
+  }).join('');
+
   // stats — the three numbers Rajesh asks for first, then context
   var stats = [
     { k: 'wip',    n: act.filter(function(b){ return b.overall === 'In Progress'; }).length, l: 'In progress' },
@@ -651,14 +895,16 @@ function rowHtml(b){
     var here = b.current === s[2];
     if (here) seen = true;
     var link = (!seen && st === 'Completed') ? ' linkdone' : '';
-    var late = st !== 'Completed' && st !== 'NA' && overdue(v.target);
+    var shown = v.eda || v.edc;
+    var late = st !== 'Completed' && st !== 'NA' && overdue(v.edc);
     return '<span class="node' + (here ? ' here' : '') + link + '" data-s="' + esc(st) + '" ' +
              'title="' + esc(s[2] + ': ' + (st === 'NA' ? 'does not apply to this board' : (st || 'not recorded')) +
-                          (v.owner && st !== 'NA' ? ' — ' + v.owner : '')) + '">' +
+                          (v.owner && st !== 'NA' ? ' — ' + v.owner : '') +
+                          (v.edc ? ' | EDC ' + v.edc : '') + (v.eda ? ' | EDA ' + v.eda : '')) + '">' +
              '<span class="pip"></span>' +
              '<span class="node-l">' + esc(s[1]) + '</span>' +
-             '<span class="node-d' + (late ? ' over' : (v.target ? '' : ' none')) + '">' +
-               (v.target ? fmt(v.target) : '·') + '</span>' +
+             '<span class="node-d' + (late ? ' over' : (shown ? '' : ' none')) + '">' +
+               (shown ? fmt(shown) : '·') + '</span>' +
              '<span class="node-o">' + esc(v.owner || '') + '</span>' +
            '</span>';
   }).join('');
@@ -696,37 +942,23 @@ function showBoard(project){
   if (!b) return;
   S.sel = b; S.mode = 'view';
   $('panel-title').textContent = b.project;
-  $('panel-sub').textContent = b.customer + ' · ' + (b.manager || 'no manager set') + ' · on the ' + b.sheet + ' sheet';
+  $('panel-sub').textContent = b.customer + ' · ' + (b.manager || 'no manager set') +
+    ' · on the ' + b.sheet + ' sheet';
 
-  var d = lateDays(b);
-  var steps = STAGES.map(function(s, i){
-    var v = b.stages[s[0]] || {};
-    var st = v.status || '';
-    var bits = [];
-    if (v.owner) bits.push(esc(v.owner));
-    if (v.target) bits.push('target ' + esc(v.target));
-    return '<div class="step" data-s="' + esc(st) + '">' +
-      '<div class="step-rail"><span class="dot" data-s="' + esc(st) + '"></span>' +
-        (i < STAGES.length - 1 ? '<span class="rail"></span>' : '') + '</div>' +
-      '<div class="step-b"><div class="step-t"><b>' + esc(s[2]) + '</b>' +
-        '<span class="chip" data-s="' + esc(st) + '">' + esc(st || 'not recorded') + '</span></div>' +
-        (bits.length ? '<div class="step-m">' + bits.join(' · ') + '</div>' : '') +
-      '</div></div>';
-  }).join('');
-
+  var dd = lateDays(b);
   $('panel-b').innerHTML =
     '<dl class="kv">' +
       '<dt>Current stage</dt><dd>' + esc(b.current) + '</dd>' +
       '<dt>Overall status</dt><dd><span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span></dd>' +
-      '<dt>Against target</dt><dd>' + (d ? '<span style="color:var(--late);font-weight:600">' + d + ' days past</span>'
-        : esc(b.delay === 'No date' ? 'no target date on this stage' : 'on target')) + '</dd>' +
       '<dt>Through process</dt><dd>' + (typeof b.pct === 'number' ? Math.round(b.pct * 100) + '%' : '—') + '</dd>' +
+      (dd ? '<dt>Against EDC</dt><dd><span style="color:var(--late);font-weight:600">' + dd + ' days over</span></dd>' : '') +
       (b.rev ? '<dt>Revision</dt><dd>' + esc(b.rev) + '</dd>' : '') +
-      (b.respin === 'Yes' ? '<dt>Respin</dt><dd>flagged, re-entering at ' + esc(b.reentry || 'a stage not yet chosen') + '</dd>' : '') +
+      (b.holdreason ? '<dt>Hold reason</dt><dd>' + esc(b.holdreason) + '</dd>' : '') +
+      (b.respin === 'Yes' ? '<dt>Respin</dt><dd>flagged, re-entering at ' +
+        esc(b.reentry || 'a stage not yet chosen') + '</dd>' : '') +
     '</dl>' +
-    (b.comment ? '<div class="cmt">' + esc(b.comment) + '</div>' : '') +
-    (b.notes ? '<div class="note">' + esc(b.notes) + '</div>' : '') +
-    steps;
+    PCBForm.viewTable(b) +
+    (b.notes ? '<div class="note" style="margin-top:16px">' + esc(b.notes) + '</div>' : '');
 
   $('panel-f').innerHTML =
     '<button class="btn btn-solid" id="p-edit">Edit this board</button>' +
@@ -739,18 +971,20 @@ function showBoard(project){
   openPanel();
 }
 
+function openModal(){ $('modal').classList.add('on'); S.mode = 'edit'; }
+function closeModal(){ $('modal').classList.remove('on'); S.mode = 'view'; $('modal-b').innerHTML = ''; }
+
 function showForm(board){
-  S.mode = 'edit';
-  $('panel-title').textContent = board ? board.project : 'New board';
-  $('panel-sub').textContent = board ? 'Editing — saving puts it on whichever sheet its stages call for'
-                                     : 'Fill in what you know. Stages you leave as NA will not block completion.';
-  $('panel-f').innerHTML = '';
-  PCBForm.mount($('panel-b'), {
+  $('modal-title').textContent = board ? 'Edit this board — ' + board.project : 'New board';
+  $('modal-sub').textContent = board
+    ? board.customer + ' · EDC is the expected date of completion, EDA the actual one'
+    : 'Type a new customer name if it is not in the list yet.';
+  PCBForm.mount($('modal-b'), {
     board: board, lists: S.lists,
-    onSaved: function(){ load(); setTimeout(closePanel, 1100); },
-    onCancel: function(){ board ? showBoard(board.project) : closePanel(); }
+    onSaved: function(){ load(); setTimeout(function(){ closeModal(); closePanel(); }, 1100); },
+    onCancel: closeModal
   });
-  openPanel();
+  openModal();
 }
 
 /* ------------------------------------------------------------------ wire */
@@ -769,6 +1003,10 @@ document.addEventListener('click', function(e){
   var stat = e.target.closest('.stat');
   if (stat) { var k = stat.getAttribute('data-k'); S.filter = (S.filter === k ? 'all' : k); return render(); }
 
+  var co = e.target.closest('.co-row');
+  if (co) { var cn = co.getAttribute('data-co');
+            S.cust = (S.cust === cn ? '' : cn); $('f-cust').value = S.cust; return render(); }
+
   var col = e.target.closest('.load-col');
   if (col) { S.stage = (S.stage === col.getAttribute('data-stage') ? '' : col.getAttribute('data-stage'));
              $('f-stage').value = S.stage; return render(); }
@@ -776,7 +1014,12 @@ document.addEventListener('click', function(e){
 
 $('veil').onclick = closePanel;
 $('panel-x').onclick = closePanel;
-document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closePanel(); });
+$('modal-x').onclick = closeModal;
+$('modal').addEventListener('click', function(e){ if (e.target === this) closeModal(); });
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Escape') return;
+  if ($('modal').classList.contains('on')) closeModal(); else closePanel();
+});
 
 $('q').addEventListener('input', function(){ S.q = this.value; render(); });
 $('f-cust').addEventListener('change', function(){ S.cust = this.value; render(); });
