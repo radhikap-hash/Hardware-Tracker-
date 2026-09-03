@@ -122,7 +122,7 @@ function layout_(sheet) {
       if (group[i] && stripN(group[i]) === s.name) { start = i + 1; break; }
     }
     if (start < 0) throw new Error('Could not find the "' + s.name + '" block on ' + key + '.');
-    col.stage[s.key] = { owner: start, status: start + 1, target: start + 2 };
+    col.stage[s.key] = { owner: start, status: start + 1, edc: start + 2, eda: start + 3, comment: start + 4 };
   });
 
   const out = { headerRow: headerRow, firstRow: headerRow + 1, col: col, nCol: head.length };
@@ -196,7 +196,9 @@ function getBoards() {
         b.stages[s.key] = {
           owner: String(row[sc.owner - 1] || '').trim(),
           status: String(row[sc.status - 1] || '').trim(),
-          target: iso_(row[sc.target - 1])
+          edc: iso_(row[sc.edc - 1]),
+          eda: iso_(row[sc.eda - 1]),
+          comment: String(row[sc.comment - 1] || '').trim()
         };
       });
       out.push(b);
@@ -261,11 +263,14 @@ function writeRow_(sheet, row, p) {
   set(c.manager, p.manager || '');
   set(c.comment, p.comment || '');
   set(c.notes, p.notes || '');
+  const asDate = v => (v ? new Date(v + 'T00:00:00') : '');
   STAGES.forEach(function (s) {
     const sc = c.stage[s.key], v = (p.stages && p.stages[s.key]) || {};
     sheet.getRange(row, sc.owner).setValue(v.owner || '');
     sheet.getRange(row, sc.status).setValue(v.status || 'NA');
-    sheet.getRange(row, sc.target).setValue(v.target ? new Date(v.target + 'T00:00:00') : '');
+    sheet.getRange(row, sc.edc).setValue(asDate(v.edc));
+    sheet.getRange(row, sc.eda).setValue(asDate(v.eda));
+    sheet.getRange(row, sc.comment).setValue(v.comment || '');
   });
   if (sheet.getSheetName() === SH_DONE) {
     set(c.respin, p.respin || 'No');
@@ -296,8 +301,7 @@ function appendTemplateRow_(sheet) {
     .forEach(col => { if (col) sheet.getRange(newRow, col).clearContent(); });
   STAGES.forEach(function (s) {
     const sc = c.stage[s.key];
-    sheet.getRange(newRow, sc.owner).clearContent();
-    sheet.getRange(newRow, sc.target).clearContent();
+    [sc.owner, sc.edc, sc.eda, sc.comment].forEach(x => sheet.getRange(newRow, x).clearContent());
     sheet.getRange(newRow, sc.status).setValue('NA');
   });
   sheet.getRange(newRow, 1).setValue(newRow - L.firstRow + 1);
@@ -323,9 +327,9 @@ function rerouteRow_(sheet, row) {
   copy(c.reason, tc.reason); copy(c.raised, tc.raised);
   STAGES.forEach(function (s) {
     const a = c.stage[s.key], b = tc.stage[s.key];
-    target.getRange(newRow, b.owner).setValue(sheet.getRange(row, a.owner).getValue());
-    target.getRange(newRow, b.status).setValue(sheet.getRange(row, a.status).getValue());
-    target.getRange(newRow, b.target).setValue(sheet.getRange(row, a.target).getValue());
+    ['owner', 'status', 'edc', 'eda', 'comment'].forEach(function (f) {
+      target.getRange(newRow, b[f]).setValue(sheet.getRange(row, a[f]).getValue());
+    });
   });
   if (belongs === SH_ACTIVE) {
     const prev = c.rev ? sheet.getRange(row, c.rev).getValue() : '';
@@ -374,7 +378,8 @@ function respinBoard(req) {
       const cur = String(done.getRange(row, sc.status).getValue()).trim();
       if (cur === 'NA') return;                       // stage does not apply to this board
       done.getRange(row, sc.status).setValue(i === from ? 'In Progress' : 'Not Started');
-      done.getRange(row, sc.target).clearContent();
+      done.getRange(row, sc.edc).clearContent();
+      done.getRange(row, sc.eda).clearContent();
     });
     if (L.col.respin)  done.getRange(row, L.col.respin).setValue('Yes');
     if (L.col.reentry) done.getRange(row, L.col.reentry).setValue(req.reentry);
