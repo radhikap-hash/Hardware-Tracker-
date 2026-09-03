@@ -63,12 +63,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pcard:hover{border-color:var(--ink2);border-left-color:var(--accent,var(--ink2))}
 .pcard h4{margin:0 0 2px;font-size:15.5px;font-weight:600}
 .pcard .pmeta{font-size:12.5px;color:var(--muted)}
-.pnums{display:flex;gap:16px;margin-top:12px}
-.pnum{display:flex;flex-direction:column}
-.pnum b{font-size:21px;font-weight:600;line-height:1.1}
-.pnum span{font-size:11.5px;color:var(--muted)}
-.pnum.late b{color:var(--late)}
-.pnum.hold b{color:var(--hold)}
+.pload{margin-top:13px;font-size:14px;line-height:1.4}
+.pload b{font-size:25px;font-weight:600;line-height:1;margin-right:3px}
+.pload span{color:var(--muted)}
+.pflags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:1px}
+.flag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.flag.late{background:var(--late-bg);color:var(--late)}
+.flag.hold{background:var(--hold-bg);color:var(--hold)}
+.flag.free{background:var(--done-bg);color:var(--done)}
 .pnext{margin-top:11px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--soft);padding-top:9px}
 .pnext em{font-style:normal;color:var(--muted)}
 .pbar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--soft);margin-top:11px}
@@ -128,6 +130,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bk-t u{display:inline-block;text-decoration:none;font-size:11.5px;font-weight:600;margin-top:4px;
         color:var(--bk,var(--muted))}
 .bk-empty{padding:20px 14px;font-size:12.5px;color:var(--muted);text-align:center}
+
+/* --------------------------------------------------- projected schedule */
+.bk-t.proj{background:repeating-linear-gradient(135deg,transparent,transparent 7px,#F4F6F8 7px,#F4F6F8 14px)}
+.bk-t.proj b{color:var(--ink2)}
+.proj-tag{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:20px;
+          background:var(--soft);color:var(--muted);margin-left:6px;vertical-align:1px}
+
+/* -------------------------------------------------------- done / actions */
+.done-btn{appearance:none;border:1px solid var(--done);background:var(--done-bg);color:var(--done);
+          border-radius:5px;padding:5px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;
+          white-space:nowrap}
+.done-btn:hover{background:var(--done);color:#fff}
+.done-btn[disabled]{opacity:.35;cursor:default;border-color:var(--rule);background:none;color:var(--muted)}
+.stbl td.act{width:1%;white-space:nowrap;text-align:right}
 
 /* ------------------------------------------------------------ health tab */
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
@@ -479,6 +495,7 @@ input.field{min-width:230px}
     <button class="tab-btn" data-tab="people">People</button>
     <button class="tab-btn" data-tab="schedule">Schedule</button>
     <button class="tab-btn" data-tab="health">Delivery Health</button>
+    <button class="tab-btn" data-tab="done">Completed</button>
   </nav>
 
   <section class="pane on" id="pane-boards">
@@ -525,6 +542,11 @@ input.field{min-width:230px}
   <section class="pane" id="pane-health">
     <p class="tab-lead">How delivery is actually going, computed from the sheet. Nothing here is estimated.</p>
     <div id="health"></div>
+  </section>
+
+  <section class="pane" id="pane-done">
+    <p class="tab-lead">Boards with every stage closed. Click one for its stage table.</p>
+    <div id="donetab"></div>
   </section>
 </main>
 
@@ -628,7 +650,23 @@ window.PEOPLE = (function () {
 
   function isVendor(cell) { return !!vendorSet[String(cell || '').trim().toLowerCase()]; }
 
-  return { roster: ROSTER, resolve: resolve, isVendor: isVendor, vendors: VENDORS };
+  /**
+   * Options for the Owner dropdown. The value is the short name the sheet
+   * already uses ("Vardhan"), so picking from the list keeps the sheet
+   * consistent with what has been typed by hand until now.
+   */
+  function ownerOptions(stageKey){
+    var out = ROSTER.filter(function(p){ return !p.partial || p.name === 'Naveen'; })
+      .map(function(p){ return { v: p.aliases[0], label: p.name + ' (' + p.aliases[0] + ')' }; });
+    if (stageKey === 'FAB') {
+      out = ['PCB Power', 'JLC', 'Micropack'].map(function(v){ return { v: v, label: v + ' (fabricator)' }; })
+              .concat(out);
+    }
+    return out;
+  }
+
+  return { roster: ROSTER, resolve: resolve, isVendor: isVendor,
+           vendors: VENDORS, ownerOptions: ownerOptions };
 })();
 </script>
 
@@ -664,6 +702,20 @@ window.PCBForm = (function () {
   function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 
+  /** Owner dropdown. Values stay as the short names the sheet already uses. */
+  function ownerOpts(L, stageKey, sel){
+    var list = (L.owners && L.owners.options && L.owners.options[stageKey]) || [];
+    var h = '<option value="">Unassigned</option>';
+    var seen = {};
+    list.forEach(function(o){
+      if (seen[o.v]) return; seen[o.v] = 1;
+      h += '<option value="' + esc(o.v) + '"' + (o.v === sel ? ' selected' : '') + '>' +
+             esc(o.l || o.v) + '</option>';
+    });
+    if (sel && !seen[sel]) h += '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>';
+    return h;
+  }
+
   function opts(list, sel, blank){
     var h = blank ? '<option value="">' + esc(blank) + '</option>' : '';
     (list || []).forEach(function(v){
@@ -671,6 +723,18 @@ window.PCBForm = (function () {
     });
     if (sel && (list || []).indexOf(sel) < 0) h += '<option value="' + esc(sel) + '" selected>' + esc(sel) + '</option>';
     return h;
+  }
+
+  
+
+  function todayISO(){
+    var t = new Date();
+    return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
+  }
+
+  /** On a new board, pre-fill the person who normally handles that stage. */
+  function usual(L, stageKey){
+    return (L.owners && L.owners.usual && L.owners.usual[stageKey]) || '';
   }
 
   function midnight(iso){ var d = new Date(iso + 'T00:00:00'); return isNaN(d) ? null : d; }
@@ -734,11 +798,14 @@ window.PCBForm = (function () {
         '<td><span class="chip" data-s="' + esc(st) + '">' + esc(st || 'not set') + '</span></td>' +
         '<td class="num ' + dd.c + '">' + (dd.t ? esc(dd.t) : '<span class="dash">—</span>') + '</td>' +
         '<td class="cmt-cell">' + (here && b.comment ? esc(b.comment) : '<span class="dash">—</span>') + '</td>' +
+        '<td class="act">' + (st && st !== 'Completed' && st !== 'NA' && st !== 'Cancelled'
+          ? '<button class="done-btn" data-done="' + s[0] + '" data-board="' + esc(b.project) + '">Review done</button>'
+          : '') + '</td>' +
       '</tr>';
     }).join('');
     return '<div class="tbl-wrap"><table class="stbl">' +
       '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th>' +
-      '<th>Days took to complete / delayed by</th><th>Comments</th></tr></thead>' +
+      '<th>Days took to complete / delayed by</th><th>Comments</th><th></th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table></div>';
   }
 
@@ -753,17 +820,21 @@ window.PCBForm = (function () {
     var rows = STAGES.map(function(s){
       var v = (b.stages && b.stages[s[0]]) || {};
       var here = cur === s[2];
-      return '<tr data-s="' + esc(v.status || 'NA') + '" data-row="' + s[0] + '"' + (here ? ' class="here"' : '') + '>' +
+      var own = v.owner || (isNew ? usual(L, s[0]) : '');
+      var st = v.status || 'NA';
+      return '<tr data-s="' + esc(st) + '" data-row="' + s[0] + '"' + (here ? ' class="here"' : '') + '>' +
         '<td class="snc"><div class="sn">' + s[3] + '</div></td>' +
         '<td class="nm">' + esc(s[1]) + '</td>' +
-        '<td><input data-k="owner" data-s="' + s[0] + '" placeholder="Owner" value="' + esc(v.owner) + '"></td>' +
-        '<td><select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, v.status || 'NA') + '</select></td>' +
+        '<td><select data-k="owner" data-s="' + s[0] + '">' + ownerOpts(L, s[0], own) + '</select></td>' +
+        '<td><select data-k="status" data-s="' + s[0] + '">' + opts(L.statuses, st) + '</select></td>' +
         '<td><input data-k="edc" data-s="' + s[0] + '" type="date" value="' + esc(v.edc) + '"></td>' +
         (isNew ? '' :
           '<td><input data-k="eda" data-s="' + s[0] + '" type="date" value="' + esc(v.eda) + '"></td>' +
           '<td class="cmt-cell">' +
             (here ? '<input id="pf-cm" placeholder="Latest comment" value="' + esc(b.comment) + '">'
-                  : '<span class="dash">—</span>') + '</td>') +
+                  : '<span class="dash">&mdash;</span>') + '</td>' +
+          '<td class="act"><button type="button" class="done-btn" data-done="' + s[0] + '"' +
+            (st === 'Completed' || st === 'NA' ? ' disabled' : '') + '>Review done</button></td>') +
       '</tr>';
     }).join('');
 
@@ -784,7 +855,7 @@ window.PCBForm = (function () {
         '<h4>Stages</h4>' +
         '<div class="tbl-wrap"><table class="stbl">' +
           '<thead><tr><th colspan="2"></th><th>Owner</th><th>Status</th><th>EDC</th>' +
-            (isNew ? '' : '<th>EDA</th><th>Comments</th>') + '</tr></thead>' +
+            (isNew ? '' : '<th>EDA</th><th>Comments</th><th></th>') + '</tr></thead>' +
           '<tbody>' + rows + '</tbody></table></div>' +
 
         (isNew ? '<div class="f" style="margin-top:16px"><label for="pf-cm2">Latest comment</label>' +
@@ -854,7 +925,36 @@ window.PCBForm = (function () {
       $('pf-v').innerHTML = 'Current stage <b>' + esc(v.stage) + '</b> · status <b>' + esc(v.status) + '</b><br>' +
         '<em>Saving puts this board on the ' + sheet + ' sheet.</em>';
     }
-    el.addEventListener('change', paint);
+    /** Naming an owner on a stage still sitting at NA starts it, so a stage is
+     *  never left assigned-but-not-applicable by accident. */
+    el.addEventListener('change', function(ev){
+      var n = ev.target;
+      if (n.getAttribute && n.getAttribute('data-k') === 'owner' && n.value.trim()) {
+        var sel = el.querySelector('[data-k="status"][data-s="' + n.getAttribute('data-s') + '"]');
+        if (sel && sel.value === 'NA') sel.value = 'Not Started';
+      }
+      if (n.getAttribute && n.getAttribute('data-k') === 'eda' && n.value) {
+        var s2 = el.querySelector('[data-k="status"][data-s="' + n.getAttribute('data-s') + '"]');
+        if (s2 && s2.value !== 'Completed') s2.value = 'Completed';
+      }
+      paint();
+    });
+
+    /** Review done — marks the stage Completed and stamps today as its EDA. */
+    el.addEventListener('click', function(ev){
+      var btn = ev.target.closest('[data-done]');
+      if (!btn) return;
+      ev.preventDefault();
+      var k = btn.getAttribute('data-done');
+      var sel = el.querySelector('[data-k="status"][data-s="' + k + '"]');
+      var eda = el.querySelector('[data-k="eda"][data-s="' + k + '"]');
+      if (sel) sel.value = 'Completed';
+      if (eda && !eda.value) eda.value = todayISO();
+      paint();
+      msg.className = 'msg';
+      msg.textContent = 'Marked done — press Save changes to write it to the sheet.';
+    });
+
     paint();
 
     function run(fn, arg, label){
@@ -941,9 +1041,50 @@ function receive(data){
   var t = new Date(data.fetched || Date.now());
   $('hdr-meta').textContent = 'Updated ' + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   $('hdr-count').textContent = S.boards.length + ' boards';
+  buildOwnerOptions();
   buildFilters();
   render();
   if (S.tab && S.tab !== 'boards') showTab(S.tab);
+}
+
+/**
+ * Owner dropdown options, per stage. Values stay as the short names already in
+ * the sheet so nothing changes format; labels add the full name from the roster.
+ * `usual` is whoever most often does that stage, used to pre-fill a new board.
+ */
+function buildOwnerOptions(){
+  var seen = {}, freq = {};
+  STAGES.forEach(function(s){ seen[s[0]] = {}; freq[s[0]] = {}; });
+  S.boards.forEach(function(b){
+    STAGES.forEach(function(s){
+      var o = (b.stages[s[0]] || {}).owner;
+      if (!o || o === 'NA') return;
+      seen[s[0]][o] = 1;
+      freq[s[0]][o] = (freq[s[0]][o] || 0) + 1;
+    });
+  });
+  var full = {};
+  if (typeof PEOPLE !== 'undefined') {
+    PEOPLE.roster.forEach(function(p){ p.aliases.forEach(function(a){ full[a] = p.name; }); });
+  }
+  var options = {}, usual = {};
+  STAGES.forEach(function(s){
+    var names = Object.keys(seen[s[0]]).sort();
+    // everyone who has ever done this stage, plus the whole roster for flexibility
+    if (typeof PEOPLE !== 'undefined' && s[0] !== 'FAB') {
+      PEOPLE.roster.forEach(function(p){
+        var short = p.aliases[0];
+        if (names.indexOf(short) < 0) names.push(short);
+      });
+    }
+    options[s[0]] = names.map(function(n){
+      return { v: n, l: full[n] && full[n] !== n ? n + ' — ' + full[n] : n };
+    });
+    var best = '', bn = 0;
+    Object.keys(freq[s[0]]).forEach(function(n){ if (freq[s[0]][n] > bn) { bn = freq[s[0]][n]; best = n; } });
+    usual[s[0]] = best;
+  });
+  S.lists.owners = { options: options, usual: usual };
 }
 
 function buildFilters(){
@@ -1154,7 +1295,13 @@ function tasks(){
       var st = v.status;
       if (!st || st === 'Completed' || st === 'NA' || st === 'Cancelled') return;
       var prev = i ? (b.stages[STAGES[i-1][0]] || {}) : {};
+      // A stage is "projected" when it has no EDC of its own but sits downstream
+      // of the stage the board is at — it will happen, we just have no date yet.
+      var curIdx = STAGES.findIndex(function(x){ return x[2] === b.current; });
+      var after = curIdx >= 0 ? i - curIdx : 99;
       out.push({
+        after: after,
+        projected: !v.edc && after > 0,
         board: b, stage: s, status: st, owner: v.owner || '',
         people: PEOPLE.resolve(v.owner), vendor: PEOPLE.isVendor(v.owner),
         edc: v.edc || '', eda: v.eda || '',
@@ -1198,30 +1345,38 @@ function renderPeople(){
 
   $('pgrid').innerHTML = names.map(function(n){
     var e = byName[n], p = e.p;
+    var nb = Object.keys(e.boards).length;
     var next = e.open.filter(function(t){ return t.edc; })
                      .sort(function(a, c){ return a.edc < c.edc ? -1 : 1; })[0];
     var wip = e.open.filter(function(t){ return t.status === 'In Progress'; }).length;
     var idle = e.open.length - wip - e.hold.length;
     var tot = Math.max(e.open.length, 1);
     var seg = function(n2, cls){ return n2 ? '<i class="' + cls + '" style="width:' + (n2 / tot * 100) + '%"></i>' : ''; };
+
+    var line = e.open.length
+      ? '<b>' + e.open.length + '</b> stage' + (e.open.length === 1 ? '' : 's') +
+        ' <span>on ' + nb + ' board' + (nb === 1 ? '' : 's') + '</span>'
+      : '<span>Nothing open right now</span>';
+
+    // flags appear only when there is something to flag
+    var flags = '';
+    if (e.late.length) flags += '<span class="flag late">' + e.late.length + ' past due</span>';
+    if (e.hold.length) flags += '<span class="flag hold">' + e.hold.length + ' on hold</span>';
+    if (!flags && e.open.length) flags = '<span class="flag free">all on track</span>';
+
     return '<button class="pcard" data-person="' + esc(n) + '" style="--accent:' + accent(n) + '">' +
       '<h4>' + esc(n) + (p.partial ? ' <span class="co-sub">not in roster</span>' : '') + '</h4>' +
       '<div class="pmeta">' + esc(p.code || '—') +
-        (p.yoe != null ? ' · ' + p.yoe + ' yrs' : '') +
-        (p.bill ? ' · ' + esc(p.bill) : '') + '</div>' +
-      '<div class="pnums">' +
-        '<span class="pnum"><b>' + e.open.length + '</b><span>open stages</span></span>' +
-        '<span class="pnum"><b>' + Object.keys(e.boards).length + '</b><span>boards</span></span>' +
-        '<span class="pnum late"><b>' + e.late.length + '</b><span>past EDC</span></span>' +
-        '<span class="pnum hold"><b>' + e.hold.length + '</b><span>on hold</span></span>' +
-      '</div>' +
-      '<div class="pbar">' + seg(wip, 'wip') + seg(e.hold.length, 'hold') + seg(idle, 'idle') + '</div>' +
+        (p.yoe != null ? ' · ' + p.yoe + ' yrs' : '') + (p.bill ? ' · ' + esc(p.bill) : '') + '</div>' +
+      '<div class="pload">' + line + '</div>' +
+      '<div class="pflags">' + flags + '</div>' +
+      (e.open.length ? '<div class="pbar">' + seg(wip, 'wip') + seg(e.hold.length, 'hold') + seg(idle, 'idle') + '</div>' : '') +
       '<div class="pnext">' + (next
         ? 'Next due: <b>' + esc(next.board.project) + '</b> · ' + esc(next.stage[1]) + ' · ' + fmt(next.edc)
-        : '<em>' + (e.open.length ? 'no EDC set on any of their stages' : 'nothing open') + '</em>') + '</div>' +
+        : '<em>' + (e.open.length ? 'none of their stages has an EDC yet' : 'free for new work') + '</em>') + '</div>' +
     '</button>';
   }).join('') || '<div class="empty"><b>No open stages</b>Nothing is assigned right now.</div>';
-  S.people = byName;
+    S.people = byName;
 }
 
 /* --------------------------------------------------------------- the gantt */
@@ -1303,6 +1458,13 @@ function undatedList(list){
  * have no EDC yet, so a timeline would be mostly empty — buckets stay readable
  * either way and put the undated work in front of you instead of hiding it.
  */
+/**
+ * Five buckets. Stages with an EDC are placed by that date. Stages with no EDC
+ * that sit downstream of where the board is now are shown as projected — the
+ * one immediately after the current stage lands in the next fortnight, the rest
+ * fall to Later. Only the stage a board is actually sitting on counts as
+ * genuinely missing a date, which is the pile worth acting on.
+ */
 function renderSchedule(){
   var now = today0();
   var T = tasks();
@@ -1311,36 +1473,51 @@ function renderSchedule(){
     { k: 'week',  t: 'Due this week',  c: 'var(--wip)',  l: [] },
     { k: 'two',   t: 'Next two weeks', c: 'var(--st3)',  l: [] },
     { k: 'later', t: 'Later',          c: 'var(--st1)',  l: [] },
-    { k: 'none',  t: 'No EDC set',     c: 'var(--wait)', l: [] }
+    { k: 'none',  t: 'Needs a date',   c: 'var(--wait)', l: [] }
   ];
-  var idx = { over: 0, week: 1, two: 2, later: 3, none: 4 };
+  var i = { over: 0, week: 1, two: 2, later: 3, none: 4 };
   T.forEach(function(t){
     var e = dnum(t.edc);
-    if (!e) return B[idx.none].l.push(t);
-    var days = Math.round((e - now) / DAY);
-    if (days < 0) return B[idx.over].l.push(t);
-    if (days <= 7) return B[idx.week].l.push(t);
-    if (days <= 21) return B[idx.two].l.push(t);
-    B[idx.later].l.push(t);
+    if (e) {
+      var days = Math.round((e - now) / DAY);
+      if (days < 0) return B[i.over].l.push(t);
+      if (days <= 7) return B[i.week].l.push(t);
+      if (days <= 21) return B[i.two].l.push(t);
+      return B[i.later].l.push(t);
+    }
+    if (t.after === 0) return B[i.none].l.push(t);   // the board is sitting here, with no date
+    if (t.after === 1) return B[i.two].l.push(t);    // next step up — expect it within the fortnight
+    return B[i.later].l.push(t);
   });
   B.forEach(function(b){
     b.l.sort(function(a, c){
-      if (!a.edc) return a.board.project.localeCompare(c.board.project);
-      return a.edc < c.edc ? -1 : 1;
+      if (a.projected !== c.projected) return a.projected ? 1 : -1;
+      if (a.edc && c.edc) return a.edc < c.edc ? -1 : 1;
+      if (a.after !== c.after) return a.after - c.after;
+      return a.board.project.localeCompare(c.board.project);
     });
   });
 
   $('sched').innerHTML = '<div class="buckets">' + B.map(function(b){
+    var proj = b.l.filter(function(t){ return t.projected; }).length;
     return '<div class="bk" style="--bk:' + b.c + '">' +
       '<div class="bk-h"><b>' + b.t + '</b><span>' + b.l.length + '</span></div>' +
+      (proj ? '<div class="bk-empty" style="padding:7px 14px;text-align:left">' + proj +
+              ' projected from the stage before</div>' : '') +
       '<div class="bk-b">' + (b.l.length ? b.l.map(function(t){
-        return '<button class="bk-t" data-p="' + esc(t.board.project) + '">' +
-          '<b>' + esc(t.board.project) + '</b>' +
-          '<i>' + esc(t.stage[1]) + (t.owner ? ' · ' + esc(t.owner) : '') + ' · ' + esc(t.board.customer) + '</i>' +
-          '<u>' + esc(t.info.t || t.status) + '</u>' +
+        return '<button class="bk-t' + (t.projected ? ' proj' : '') + '" data-p="' + esc(t.board.project) + '">' +
+          '<b>' + esc(t.board.project) + (t.projected ? '<span class="proj-tag">projected</span>' : '') + '</b>' +
+          '<i>' + esc(t.stage[1]) + (t.owner ? ' · ' + esc(t.owner) : ' · unassigned') +
+            ' · ' + esc(t.board.customer) + '</i>' +
+          '<u>' + esc(t.projected ? 'follows ' + prevStageName(t) : (t.info.t || t.status)) + '</u>' +
         '</button>';
       }).join('') : '<div class="bk-empty">Nothing here</div>') + '</div></div>';
   }).join('') + '</div>';
+}
+
+function prevStageName(t){
+  var i = STAGES.findIndex(function(s){ return s[0] === t.stage[0]; });
+  return i > 0 ? STAGES[i - 1][1] : 'the previous stage';
 }
 
 /* ------------------------------------------------------- delivery health */
@@ -1439,6 +1616,53 @@ function personTable(list){
     }).join('') + '</tbody></table></div>';
 }
 
+/* ------------------------------------------------------------ completed */
+
+function renderDone(){
+  var done = S.boards.filter(function(b){ return !isActive(b); });
+  var cancelled = done.filter(function(b){ return b.overall === 'Cancelled'; }).length;
+
+  // On-time record, wherever an EDA has been entered against an EDC.
+  var measured = 0, onTime = 0;
+  done.forEach(function(b){
+    STAGES.forEach(function(s){
+      var v = b.stages[s[0]] || {};
+      if (v.status !== 'Completed' || !v.eda || !v.edc) return;
+      measured++;
+      if (new Date(v.eda) <= new Date(v.edc)) onTime++;
+    });
+  });
+
+  var byCo = {};
+  done.forEach(function(b){ (byCo[b.customer] = byCo[b.customer] || []).push(b); });
+  var names = Object.keys(byCo).sort(function(a, c){ return byCo[c].length - byCo[a].length; });
+
+  $('donetab').innerHTML =
+    '<div class="hgrid">' +
+      card(String(done.length - cancelled), 'ok', 'Boards closed',
+        'Every stage on these is Completed or not applicable.', '') +
+      card(String(cancelled), cancelled ? 'warn' : 'ok', 'Cancelled',
+        'Dropped rather than delivered.', '') +
+      card(measured ? Math.round(onTime / measured * 100) + '%' : '—',
+        measured ? (onTime / measured >= 0.7 ? 'ok' : 'warn') : '',
+        'Finished on time',
+        measured ? onTime + ' of ' + measured + ' measurable stages met their EDC.'
+                 : 'No stage yet has both an EDC and an EDA, so on-time cannot be measured.',
+        measured ? '' : 'Fill EDA as stages finish and this fills in by itself.') +
+      card(String(names.length), '', 'Customers served',
+        'Across the closed work.', '') +
+    '</div>' +
+    names.map(function(name){
+      var g = byCo[name];
+      return '<section class="grp" style="--accent:' + accent(name) + ';margin-top:11px">' +
+        '<button class="grp-h"><span class="caret"></span><span class="grp-dot"></span>' +
+          '<span class="grp-name">' + esc(name) + '</span>' +
+          '<span class="grp-tags"><span class="tag">' + g.length + ' closed</span></span></button>' +
+        '<div class="grp-body">' + g.map(rowHtml).join('') + '</div>' +
+      '</section>';
+    }).join('');
+}
+
 function card(big, cls, title, note, todo){
   return '<div class="hcard"><h4>' + esc(title) + '</h4>' +
     '<div class="big ' + cls + '">' + big + '</div><p>' + note + '</p>' +
@@ -1456,6 +1680,7 @@ function showTab(name){
   if (name === 'people') renderPeople();
   if (name === 'schedule') renderSchedule();
   if (name === 'health') renderHealth();
+  if (name === 'done') renderDone();
 }
 
 function showPerson(name){
@@ -1478,6 +1703,39 @@ function showPerson(name){
   $('pm-close').onclick = closeModal;
   openModal();
   S.mode = 'view';
+}
+
+/**
+ * "Review done" straight from the sidebar: sets the stage to Completed with
+ * today as its EDA and writes it, so a finished stage takes one click.
+ */
+function markDone(project, stageKey){
+  var b = S.boards.filter(function(x){ return x.project === project; })[0];
+  if (!b) return;
+  var s = STAGES.filter(function(x){ return x[0] === stageKey; })[0];
+  if (!confirm('Mark ' + s[1] + ' on ' + project + ' as completed today?')) return;
+
+  var stages = {};
+  STAGES.forEach(function(x){
+    var v = b.stages[x[0]] || {};
+    stages[x[0]] = { owner: v.owner || '', status: v.status || 'NA', edc: v.edc || '', eda: v.eda || '' };
+  });
+  stages[stageKey].status = 'Completed';
+  if (!stages[stageKey].eda) stages[stageKey].eda = new Date().toISOString().slice(0, 10);
+
+  var btn = document.querySelector('[data-done="' + stageKey + '"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  google.script.run
+    .withSuccessHandler(function(){ load(); closePanel(); })
+    .withFailureHandler(function(err){
+      if (btn) { btn.disabled = false; btn.textContent = 'Review done'; }
+      alert(err && err.message ? err.message : 'Could not save that.');
+    })
+    .saveBoard({
+      project: b.project, customer: b.customer, manager: b.manager, rev: b.rev || '',
+      comment: b.comment || '', holdreason: b.holdreason || '', notes: b.notes || '',
+      stages: stages, originalProject: b.project
+    });
 }
 
 /* ------------------------------------------------------------ slide-over */
@@ -1546,6 +1804,10 @@ document.addEventListener('click', function(e){
 
   var pc = e.target.closest('.pcard');
   if (pc) return showPerson(pc.getAttribute('data-person'));
+
+  var db = e.target.closest('[data-done][data-board]');
+  if (db) { e.stopPropagation();
+            return markDone(db.getAttribute('data-board'), db.getAttribute('data-done')); }
 
   var bt = e.target.closest('.bk-t[data-p]');
   if (bt) return showBoard(bt.getAttribute('data-p'));
