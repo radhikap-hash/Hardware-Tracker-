@@ -101,6 +101,25 @@ button,input,select,textarea{font:inherit;color:inherit}
 .g-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 2px 0}
 .g-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
+/* ---------------------------------------------------------- schedule tab */
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:14px;
+         align-items:start}
+.bk{background:var(--card);border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+.bk-h{padding:12px 14px;border-bottom:1px solid var(--soft);display:flex;align-items:baseline;gap:8px;
+      border-top:3px solid var(--bk,var(--rule))}
+.bk-h b{font-size:14px;font-weight:600}
+.bk-h span{margin-left:auto;font-size:19px;font-weight:600;color:var(--bk,var(--ink))}
+.bk-b{padding:5px 0;max-height:430px;overflow:auto}
+.bk-t{display:block;width:100%;text-align:left;background:none;border:0;font:inherit;color:inherit;
+      padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--soft)}
+.bk-t:last-child{border-bottom:0}
+.bk-t:hover{background:#F7F9FB}
+.bk-t b{display:block;font-size:13.5px;font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+.bk-t i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.bk-t u{display:inline-block;text-decoration:none;font-size:11.5px;font-weight:600;margin-top:4px;
+        color:var(--bk,var(--muted))}
+.bk-empty{padding:20px 14px;font-size:12.5px;color:var(--muted);text-align:center}
+
 /* ------------------------------------------------------------ health tab */
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
 .hcard{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:16px 18px}
@@ -109,12 +128,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hcard .big.bad{color:var(--late)}
 .hcard .big.ok{color:var(--done)}
 .hcard .big.warn{color:var(--wip)}
-.hcard p{margin:7px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.hcard p{margin:7px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.hcard .todo{margin-top:10px;padding-top:9px;border-top:1px solid var(--soft);font-size:12.5px;color:var(--ink2)}
 .hbars{margin-top:14px}
 .hbar{display:grid;grid-template-columns:170px 1fr 48px;gap:11px;align-items:center;
       padding:6px 0;font-size:13px}
-.hbar-t{height:9px;border-radius:5px;background:var(--soft);overflow:hidden}
-.hbar-t i{display:block;height:100%;background:var(--accent,var(--wip));border-radius:5px}
+.hbar-t{height:11px;border-radius:6px;background:var(--soft);overflow:hidden;display:flex}
+.hbar-t i{display:block;height:100%}
+.hbar-t i.on{background:var(--accent,var(--wip))}
+.hbar-t i.late{background:var(--late)}
 .hbar-n{text-align:right;font-weight:600;font-size:13px}
 
 /* ------------------------------------------------------------------ hero */
@@ -122,17 +144,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero-row .hero{margin:0;height:100%}
 
 /* company-wise completion */
-.co{display:flex;flex-direction:column;gap:9px;max-height:210px;overflow:auto;padding-right:4px}
-.co-row{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;
-        background:none;border:0;padding:3px 2px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
-.co-row:hover .co-name{color:var(--ink)}
-.co-row.on .co-name{color:var(--ink);font-weight:600}
-.co-name{font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:7px;line-height:1.25}
-.co-name i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;font-style:normal}
-.co-track{height:7px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}
-.co-fill{height:100%;background:var(--accent);border-radius:4px}
-.co-pct{font-size:14px;font-weight:600;text-align:right}
-.co-sub{font-size:11.5px;color:var(--muted);font-weight:450}
+.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;
+     max-height:230px;overflow:auto;padding-right:2px}
+.co-row{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--accent);
+        border-radius:8px;padding:11px 12px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.co-row:hover{border-color:var(--ink2);border-top-color:var(--accent)}
+.co-row.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.co-pct{font-size:24px;font-weight:600;line-height:1;color:var(--accent)}
+.co-name{font-size:12.5px;color:var(--ink);font-weight:500;margin-top:4px;line-height:1.25;
+         overflow-wrap:anywhere}
+.co-sub{font-size:11px;color:var(--muted);font-weight:450;display:block;margin-top:2px}
+.co-track{height:5px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
+.co-fill{height:100%;background:var(--accent);border-radius:3px}
 
 /* ---------------------------------------------------------- stage tables */
 .stbl{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -994,10 +1017,10 @@ function render(){
     var pct = c.scope ? Math.round((c.done / c.scope) * 100) : 0;
     return '<button class="co-row' + (S.cust === name ? ' on' : '') + '" data-co="' + esc(name) +
              '" style="--accent:' + accent(name) + '">' +
-      '<span><span class="co-name"><i></i>' + esc(name) +
-        ' <span class="co-sub">' + c.closed + '/' + c.n + ' boards closed</span></span>' +
-        '<span class="co-track"><span class="co-fill" style="width:' + pct + '%"></span></span></span>' +
       '<span class="co-pct">' + pct + '%</span>' +
+      '<span class="co-name">' + esc(name) +
+        '<span class="co-sub">' + c.closed + ' of ' + c.n + ' closed</span></span>' +
+      '<span class="co-track"><span class="co-fill" style="width:' + pct + '%"></span></span>' +
     '</button>';
   }).join('');
 
@@ -1141,6 +1164,11 @@ function taskLate(t){
 /* ------------------------------------------------------------- people tab */
 
 function renderPeople(){
+  if (typeof PEOPLE === 'undefined') {
+    $('pgrid').innerHTML = '<div class="empty"><b>The roster did not load</b>' +
+      'People.html is missing from this build. Paste the current Dashboard.html and redeploy.</div>';
+    return;
+  }
   var T = tasks();
   var byName = {};
   PEOPLE.roster.forEach(function(p){
@@ -1261,7 +1289,50 @@ function undatedList(list){
     esc(list.map(function(t){ return t.board.project + ' (' + t.stage[1] + ')'; }).join(', ')) + '</div>';
 }
 
-function renderSchedule(){ $('sched').innerHTML = gantt(tasks(), true); }
+/**
+ * The schedule as five plain buckets rather than a sparse chart. Most stages
+ * have no EDC yet, so a timeline would be mostly empty — buckets stay readable
+ * either way and put the undated work in front of you instead of hiding it.
+ */
+function renderSchedule(){
+  var now = today0();
+  var T = tasks();
+  var B = [
+    { k: 'over',  t: 'Overdue',        c: 'var(--late)', l: [] },
+    { k: 'week',  t: 'Due this week',  c: 'var(--wip)',  l: [] },
+    { k: 'two',   t: 'Next two weeks', c: 'var(--st3)',  l: [] },
+    { k: 'later', t: 'Later',          c: 'var(--st1)',  l: [] },
+    { k: 'none',  t: 'No EDC set',     c: 'var(--wait)', l: [] }
+  ];
+  var idx = { over: 0, week: 1, two: 2, later: 3, none: 4 };
+  T.forEach(function(t){
+    var e = dnum(t.edc);
+    if (!e) return B[idx.none].l.push(t);
+    var days = Math.round((e - now) / DAY);
+    if (days < 0) return B[idx.over].l.push(t);
+    if (days <= 7) return B[idx.week].l.push(t);
+    if (days <= 21) return B[idx.two].l.push(t);
+    B[idx.later].l.push(t);
+  });
+  B.forEach(function(b){
+    b.l.sort(function(a, c){
+      if (!a.edc) return a.board.project.localeCompare(c.board.project);
+      return a.edc < c.edc ? -1 : 1;
+    });
+  });
+
+  $('sched').innerHTML = '<div class="buckets">' + B.map(function(b){
+    return '<div class="bk" style="--bk:' + b.c + '">' +
+      '<div class="bk-h"><b>' + b.t + '</b><span>' + b.l.length + '</span></div>' +
+      '<div class="bk-b">' + (b.l.length ? b.l.map(function(t){
+        return '<button class="bk-t" data-p="' + esc(t.board.project) + '">' +
+          '<b>' + esc(t.board.project) + '</b>' +
+          '<i>' + esc(t.stage[1]) + (t.owner ? ' · ' + esc(t.owner) : '') + ' · ' + esc(t.board.customer) + '</i>' +
+          '<u>' + esc(t.info.t || t.status) + '</u>' +
+        '</button>';
+      }).join('') : '<div class="bk-empty">Nothing here</div>') + '</div></div>';
+  }).join('') + '</div>';
+}
 
 /* ------------------------------------------------------- delivery health */
 
@@ -1278,55 +1349,91 @@ function renderHealth(){
   var loadNames = Object.keys(loadBy).sort(function(a, c){ return loadBy[c] - loadBy[a]; });
   var loadMax = loadNames.length ? loadBy[loadNames[0]] : 1;
   var totalLoad = T.length || 1;
-  var top = loadNames.length ? Math.round(loadBy[loadNames[0]] / totalLoad * 100) : 0;
-
+  var topName = loadNames[0] || '—';
+  var topShare = loadNames.length ? Math.round(loadBy[topName] / totalLoad * 100) : 0;
   var coverage = T.length ? Math.round((T.length - noEdc.length) / T.length * 100) : 0;
+  var lateBoards = {};
+  late.forEach(function(t){ lateBoards[t.board.project] = 1; });
 
   var stageMix = STAGES.map(function(s){
-    var n = T.filter(function(t){ return t.stage[0] === s[0]; }).length;
-    var l = T.filter(function(t){ return t.stage[0] === s[0] && taskLate(t) > 0; }).length;
-    return { s: s, n: n, l: l };
+    return { s: s,
+      n: T.filter(function(t){ return t.stage[0] === s[0]; }).length,
+      l: T.filter(function(t){ return t.stage[0] === s[0] && taskLate(t) > 0; }).length };
   });
   var mixMax = Math.max.apply(null, stageMix.map(function(x){ return x.n; }).concat([1]));
 
   $('health').innerHTML =
     '<div class="hgrid">' +
-      card(coverage + '%', coverage >= 80 ? 'ok' : (coverage >= 50 ? 'warn' : 'bad'), 'EDC coverage',
-        noEdc.length + ' of ' + T.length + ' open stages have no expected completion date. Delay reporting is blind on those.') +
-      card(String(late.length), late.length ? 'bad' : 'ok', 'Stages past EDC',
-        'Across ' + new Set(late.map(function(t){ return t.board.project; })).size + ' boards.') +
-      card(top + '%', top >= 25 ? 'bad' : (top >= 18 ? 'warn' : 'ok'), 'Busiest person\u2019s share',
-        (loadNames[0] || '—') + ' holds ' + (loadBy[loadNames[0]] || 0) + ' of ' + T.length +
-        ' open stages. One person\u2019s absence stalls that much work.') +
-      card(noReason.length + '/' + onHold.length, noReason.length ? 'warn' : 'ok', 'Holds with no reason',
-        'A hold without a recorded reason cannot be escalated or counted.') +
+      card(coverage + '%', coverage >= 80 ? 'ok' : (coverage >= 50 ? 'warn' : 'bad'),
+        'Stages with a date',
+        'Only ' + (T.length - noEdc.length) + ' of ' + T.length + ' open stages have an EDC.',
+        noEdc.length ? 'Until the rest have dates, nothing can be called late.' : 'Every open stage has a date.') +
+      card(String(late.length), late.length ? 'bad' : 'ok',
+        'Stages running late',
+        'Spread across ' + Object.keys(lateBoards).length + ' board' +
+          (Object.keys(lateBoards).length === 1 ? '' : 's') + '.',
+        late.length ? 'See the Overdue column on the Schedule tab.' : 'Nothing is past its EDC.') +
+      card(topShare + '%', topShare >= 25 ? 'bad' : (topShare >= 18 ? 'warn' : 'ok'),
+        'Carried by one person',
+        esc(topName) + ' holds ' + (loadBy[topName] || 0) + ' of the ' + T.length + ' open stages.',
+        topShare >= 18 ? 'If they take leave, that much work stops.' : 'Load is reasonably spread.') +
+      card(noReason.length + ' of ' + onHold.length, noReason.length ? 'warn' : 'ok',
+        'Holds with no reason',
+        'Boards paused without anyone recording why.',
+        noReason.length ? 'Fill column AK so holds can be chased.' : 'Every hold has a reason.') +
     '</div>' +
 
-    '<div class="hcard" style="margin-top:12px"><h4>Open stages per person</h4>' +
-      '<p>Fabrication vendors excluded. Bars are open stages, red is the share already past EDC.</p>' +
+    '<div class="hcard" style="margin-top:12px"><h4>Who is carrying the open work</h4>' +
+      '<p>Open stages per person. The red part of each bar is already past its EDC. Fabrication vendors excluded.</p>' +
       '<div class="hbars">' + loadNames.map(function(n){
         var lateN = T.filter(function(t){ return taskLate(t) > 0 &&
           t.people.some(function(p){ return p.name === n; }); }).length;
+        var w = loadBy[n] / loadMax * 100;
         return '<div class="hbar"><span>' + esc(n) + '</span>' +
           '<span class="hbar-t" style="--accent:' + accent(n) + '">' +
-            '<i style="width:' + (loadBy[n] / loadMax * 100) + '%;background:linear-gradient(90deg,' +
-              accent(n) + ' ' + (100 - lateN / loadBy[n] * 100) + '%,var(--late) ' +
-              (100 - lateN / loadBy[n] * 100) + '%)"></i></span>' +
+            '<i class="on" style="width:' + (w * (loadBy[n] - lateN) / loadBy[n]) + '%"></i>' +
+            '<i class="late" style="width:' + (w * lateN / loadBy[n]) + '%"></i></span>' +
           '<span class="hbar-n">' + loadBy[n] + '</span></div>';
       }).join('') + '</div></div>' +
 
     '<div class="hcard" style="margin-top:12px"><h4>Where the queue is deepest</h4>' +
-      '<p>Open stages by process step, regardless of which board they sit on.</p>' +
+      '<p>Open stages by process step, whichever board they belong to.</p>' +
       '<div class="hbars">' + stageMix.map(function(x, i){
+        var w = x.n / mixMax * 100;
         return '<div class="hbar"><span>' + esc(x.s[1]) + '</span>' +
-          '<span class="hbar-t"><i style="width:' + (x.n / mixMax * 100) + '%;background:' + STAGE_HUE[i] + '"></i></span>' +
-          '<span class="hbar-n">' + x.n + (x.l ? ' <span style="color:var(--late)">·' + x.l + '</span>' : '') + '</span></div>';
+          '<span class="hbar-t">' +
+            '<i class="on" style="width:' + (x.n ? w * (x.n - x.l) / x.n : 0) + '%;background:' + STAGE_HUE[i] + '"></i>' +
+            '<i class="late" style="width:' + (x.n ? w * x.l / x.n : 0) + '%"></i></span>' +
+          '<span class="hbar-n">' + x.n + '</span></div>';
       }).join('') + '</div></div>';
 }
 
-function card(big, cls, title, note){
+/** Their open stages as a plain table — works even when no EDC has been set. */
+function personTable(list){
+  if (!list.length) return '<div class="empty"><b>Nothing open</b>No stage is assigned to them right now.</div>';
+  var sorted = list.slice().sort(function(a, c){
+    if (a.edc && c.edc) return a.edc < c.edc ? -1 : 1;
+    if (a.edc) return -1;
+    if (c.edc) return 1;
+    return a.board.project.localeCompare(c.board.project);
+  });
+  return '<div class="tbl-wrap"><table class="stbl">' +
+    '<thead><tr><th>Board</th><th>Stage</th><th>Status</th><th>EDC</th><th>Days</th></tr></thead><tbody>' +
+    sorted.map(function(t){
+      return '<tr data-s="' + esc(t.status) + '">' +
+        '<td class="nm">' + esc(t.board.project) + '<br><span class="co-sub">' + esc(t.board.customer) + '</span></td>' +
+        '<td>' + esc(t.stage[1]) + '</td>' +
+        '<td><span class="chip" data-s="' + esc(t.status) + '">' + esc(t.status) + '</span></td>' +
+        '<td class="num">' + (t.edc ? fmt(t.edc) : '<span class="dash">not set</span>') + '</td>' +
+        '<td class="num ' + t.info.c + '">' + esc(t.info.t || '—') + '</td>' +
+      '</tr>';
+    }).join('') + '</tbody></table></div>';
+}
+
+function card(big, cls, title, note, todo){
   return '<div class="hcard"><h4>' + esc(title) + '</h4>' +
-    '<div class="big ' + cls + '">' + big + '</div><p>' + note + '</p></div>';
+    '<div class="big ' + cls + '">' + big + '</div><p>' + note + '</p>' +
+    (todo ? '<div class="todo">' + todo + '</div>' : '') + '</div>';
 }
 
 /* ------------------------------------------------------------- tab wiring */
@@ -1355,7 +1462,8 @@ function showPerson(name){
       (p.partial ? '<div class="note">This name appears as a stage owner in the sheet but was not in the roster. ' +
                    'Add their row so the People tab can show grade, billing and project allocation.</div>' : '') +
       '<h4>' + e.open.length + ' open stage' + (e.open.length === 1 ? '' : 's') + '</h4>' +
-      gantt(e.open, false) +
+      personTable(e.open) +
+      (e.open.some(function(t){ return t.edc; }) ? gantt(e.open, false) : '') +
     '</div>' +
     '<div class="bar"><button class="btn" id="pm-close">Close</button></div>';
   $('pm-close').onclick = closeModal;
@@ -1429,6 +1537,9 @@ document.addEventListener('click', function(e){
 
   var pc = e.target.closest('.pcard');
   if (pc) return showPerson(pc.getAttribute('data-person'));
+
+  var bt = e.target.closest('.bk-t[data-p]');
+  if (bt) return showBoard(bt.getAttribute('data-p'));
 
   var gr = e.target.closest('.g-row[data-p]');
   if (gr) { closeModal(); return showBoard(gr.getAttribute('data-p')); }
