@@ -109,6 +109,7 @@ input.field{min-width:230px}
 .tag{font-size:12.5px;padding:3px 10px;border-radius:20px;background:var(--soft);color:var(--ink2)}
 .tag.late{background:var(--late-bg);color:var(--late);font-weight:500}
 .tag.hold{background:var(--hold-bg);color:var(--hold)}
+.tag.wip{background:var(--wip-bg);color:var(--wip)}
 .grp-body{display:none;border-top:1px solid var(--soft)}
 .grp.open .grp-body{display:block}
 
@@ -606,19 +607,24 @@ function render(){
     return by[c].filter(isActive).length - by[a].filter(isActive).length || a.localeCompare(c);
   });
 
+  // Groups start closed. A search or a filter opens them, since a collapsed
+  // group would otherwise hide the very rows you just filtered for.
+  var forced = !!(S.q || S.cust || S.stage);
   $('list').innerHTML = names.map(function(name){
     var g = by[name];
     var late = g.filter(lateDays).length;
     var hold = g.filter(function(b){ return b.overall === 'On Hold'; }).length;
-    var open = S.open[name] !== false;
+    var wip  = g.filter(function(b){ return b.overall === 'In Progress'; }).length;
+    var open = S.open[name] === true || (forced && S.open[name] !== false);
     return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(name) +
              '" style="--accent:' + accent(name) + '">' +
       '<button class="grp-h"><span class="caret"></span><span class="grp-dot"></span>' +
         '<span class="grp-name">' + esc(name) + '</span>' +
         '<span class="grp-tags">' +
           '<span class="tag">' + g.length + ' board' + (g.length === 1 ? '' : 's') + '</span>' +
+          (wip ? '<span class="tag wip">' + wip + ' in progress</span>' : '') +
           (hold ? '<span class="tag hold">' + hold + ' on hold</span>' : '') +
-          (late ? '<span class="tag late">' + late + ' past target</span>' : '') +
+          (late ? '<span class="tag late">' + late + ' past due</span>' : '') +
         '</span></button>' +
       '<div class="grp-body">' + g.map(rowHtml).join('') + '</div>' +
     '</section>';
@@ -756,7 +762,7 @@ document.addEventListener('click', function(e){
   var gh = e.target.closest('.grp-h');
   if (gh) {
     var g = gh.closest('.grp'), n = g.getAttribute('data-g');
-    S.open[n] = !g.classList.contains('open');
+    S.open[n] = !g.classList.contains('open');   // explicit, so filters won't override it
     g.classList.toggle('open');
     return;
   }
@@ -778,12 +784,12 @@ $('f-stage').addEventListener('change', function(){ S.stage = this.value; render
 $('btn-refresh').onclick = load;
 $('btn-add').onclick = function(){ showForm(null); };
 $('btn-expand').onclick = function(){
-  var anyClosed = document.querySelector('.grp:not(.open)');
+  var openAll = !!document.querySelector('.grp:not(.open)');
   document.querySelectorAll('.grp').forEach(function(g){
-    S.open[g.getAttribute('data-g')] = !!anyClosed;
-    g.classList.toggle('open', !!anyClosed);
+    S.open[g.getAttribute('data-g')] = openAll;
+    g.classList.toggle('open', openAll);
   });
-  this.textContent = anyClosed ? 'Collapse all' : 'Expand all';
+  this.textContent = openAll ? 'Collapse all' : 'Expand all';
 };
 
 load();
