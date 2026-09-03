@@ -100,6 +100,25 @@ button,input,select,textarea{font:inherit;color:inherit}
 .g-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 2px 0}
 .g-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
+/* ---------------------------------------------------------- schedule tab */
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:14px;
+         align-items:start}
+.bk{background:var(--card);border:1px solid var(--rule);border-radius:9px;overflow:hidden}
+.bk-h{padding:12px 14px;border-bottom:1px solid var(--soft);display:flex;align-items:baseline;gap:8px;
+      border-top:3px solid var(--bk,var(--rule))}
+.bk-h b{font-size:14px;font-weight:600}
+.bk-h span{margin-left:auto;font-size:19px;font-weight:600;color:var(--bk,var(--ink))}
+.bk-b{padding:5px 0;max-height:430px;overflow:auto}
+.bk-t{display:block;width:100%;text-align:left;background:none;border:0;font:inherit;color:inherit;
+      padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--soft)}
+.bk-t:last-child{border-bottom:0}
+.bk-t:hover{background:#F7F9FB}
+.bk-t b{display:block;font-size:13.5px;font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+.bk-t i{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+.bk-t u{display:inline-block;text-decoration:none;font-size:11.5px;font-weight:600;margin-top:4px;
+        color:var(--bk,var(--muted))}
+.bk-empty{padding:20px 14px;font-size:12.5px;color:var(--muted);text-align:center}
+
 /* ------------------------------------------------------------ health tab */
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
 .hcard{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:16px 18px}
@@ -108,12 +127,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hcard .big.bad{color:var(--late)}
 .hcard .big.ok{color:var(--done)}
 .hcard .big.warn{color:var(--wip)}
-.hcard p{margin:7px 0 0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.hcard p{margin:7px 0 0;font-size:13px;color:var(--muted);line-height:1.45}
+.hcard .todo{margin-top:10px;padding-top:9px;border-top:1px solid var(--soft);font-size:12.5px;color:var(--ink2)}
 .hbars{margin-top:14px}
 .hbar{display:grid;grid-template-columns:170px 1fr 48px;gap:11px;align-items:center;
       padding:6px 0;font-size:13px}
-.hbar-t{height:9px;border-radius:5px;background:var(--soft);overflow:hidden}
-.hbar-t i{display:block;height:100%;background:var(--accent,var(--wip));border-radius:5px}
+.hbar-t{height:11px;border-radius:6px;background:var(--soft);overflow:hidden;display:flex}
+.hbar-t i{display:block;height:100%}
+.hbar-t i.on{background:var(--accent,var(--wip))}
+.hbar-t i.late{background:var(--late)}
 .hbar-n{text-align:right;font-weight:600;font-size:13px}
 
 /* ------------------------------------------------------------------ hero */
@@ -121,17 +143,18 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero-row .hero{margin:0;height:100%}
 
 /* company-wise completion */
-.co{display:flex;flex-direction:column;gap:9px;max-height:210px;overflow:auto;padding-right:4px}
-.co-row{display:grid;grid-template-columns:1fr 46px;gap:10px;align-items:center;
-        background:none;border:0;padding:3px 2px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
-.co-row:hover .co-name{color:var(--ink)}
-.co-row.on .co-name{color:var(--ink);font-weight:600}
-.co-name{font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:7px;line-height:1.25}
-.co-name i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;font-style:normal}
-.co-track{height:7px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}
-.co-fill{height:100%;background:var(--accent);border-radius:4px}
-.co-pct{font-size:14px;font-weight:600;text-align:right}
-.co-sub{font-size:11.5px;color:var(--muted);font-weight:450}
+.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;
+     max-height:230px;overflow:auto;padding-right:2px}
+.co-row{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--accent);
+        border-radius:8px;padding:11px 12px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.co-row:hover{border-color:var(--ink2);border-top-color:var(--accent)}
+.co-row.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.co-pct{font-size:24px;font-weight:600;line-height:1;color:var(--accent)}
+.co-name{font-size:12.5px;color:var(--ink);font-weight:500;margin-top:4px;line-height:1.25;
+         overflow-wrap:anywhere}
+.co-sub{font-size:11px;color:var(--muted);font-weight:450;display:block;margin-top:2px}
+.co-track{height:5px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
+.co-fill{height:100%;background:var(--accent);border-radius:3px}
 
 /* ---------------------------------------------------------- stage tables */
 .stbl{width:100%;border-collapse:collapse;font-size:13.5px}
