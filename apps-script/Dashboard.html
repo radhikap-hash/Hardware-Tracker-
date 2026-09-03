@@ -71,8 +71,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .pnum.hold b{color:var(--hold)}
 .pnext{margin-top:11px;font-size:12.5px;color:var(--ink2);border-top:1px solid var(--soft);padding-top:9px}
 .pnext em{font-style:normal;color:var(--muted)}
-.pbar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--soft);margin-top:11px}
-.pbar i{display:block;height:100%}
+.pbar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--soft);margin-top:11px}
+.pbar i{display:block;height:100%;position:static}
+.pbar i.wip{background:var(--wip)}
+.pbar i.hold{background:var(--hold)}
+.pbar i.idle{background:var(--wait);opacity:.5}
 
 /* --------------------------------------------------------- gantt timeline */
 .gantt{margin-top:12px;background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:6px 0 12px}
@@ -99,7 +102,13 @@ button,input,select,textarea{font:inherit;color:inherit}
 .g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--late);opacity:.55;pointer-events:none}
 .g-none{padding:26px 16px;text-align:center;color:var(--muted);font-size:13.5px}
 .g-key{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 2px 0}
-.g-key i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.g-key i{display:inline-block;position:static;width:11px;height:11px;border-radius:2px;
+          margin-right:5px;vertical-align:-1px;padding:0;top:auto;left:auto}
+.g-key i.wip{background:var(--wip)}
+.g-key i.hold{background:var(--hold)}
+.g-key i.idle{background:var(--wait)}
+.g-key i.late{background:var(--late)}
+.g-key i.now{background:var(--late);width:2px;height:12px;border-radius:0}
 
 /* ---------------------------------------------------------- schedule tab */
 .buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:11px;margin-top:14px;
@@ -1206,7 +1215,7 @@ function renderPeople(){
         '<span class="pnum late"><b>' + e.late.length + '</b><span>past EDC</span></span>' +
         '<span class="pnum hold"><b>' + e.hold.length + '</b><span>on hold</span></span>' +
       '</div>' +
-      '<div class="pbar">' + seg(wip, 'g-bar wip') + seg(e.hold.length, 'g-bar hold') + seg(idle, 'g-bar idle') + '</div>' +
+      '<div class="pbar">' + seg(wip, 'wip') + seg(e.hold.length, 'hold') + seg(idle, 'idle') + '</div>' +
       '<div class="pnext">' + (next
         ? 'Next due: <b>' + esc(next.board.project) + '</b> · ' + esc(next.stage[1]) + ' · ' + fmt(next.edc)
         : '<em>' + (e.open.length ? 'no EDC set on any of their stages' : 'nothing open') + '</em>') + '</div>' +
@@ -1274,11 +1283,11 @@ function gantt(list, showOwner){
 
   return '<div class="gantt">' + head + rows + '</div>' +
     '<div class="g-key">' +
-      '<span><i class="g-bar wip" style="background:var(--wip)"></i>In progress</span>' +
-      '<span><i class="g-bar hold" style="background:var(--hold)"></i>On hold</span>' +
-      '<span><i class="g-bar idle" style="background:var(--wait)"></i>Not started</span>' +
-      '<span><i class="g-bar late" style="background:var(--late)"></i>Past EDC</span>' +
-      '<span><i style="background:var(--late);width:2px"></i>Today</span>' +
+      '<span><i class="wip"></i>In progress</span>' +
+      '<span><i class="hold"></i>On hold</span>' +
+      '<span><i class="idle"></i>Not started</span>' +
+      '<span><i class="late"></i>Past EDC</span>' +
+      '<span><i class="now"></i>Today</span>' +
     '</div>' + undatedList(undated);
 }
 
