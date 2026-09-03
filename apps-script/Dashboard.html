@@ -97,31 +97,43 @@ input.field{min-width:230px}
 .grp.open .grp-body{display:block}
 
 /* ------------------------------------------------------------ board rows */
-.row{display:grid;grid-template-columns:minmax(190px,1.5fr) 250px 118px 92px minmax(150px,1.6fr);
-     gap:14px;align-items:center;padding:11px 16px;border-top:1px solid var(--soft);
-     width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.row{display:block;padding:13px 16px 15px;border-top:1px solid var(--soft);width:100%;
+     background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.row-top{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.row-right{margin-left:auto;display:flex;gap:11px;align-items:baseline}
 .row:first-child{border-top:0}
 .row:hover{background:#F7F9FB}
 .row-name{font-weight:500;font-size:13.5px;overflow-wrap:anywhere}
+.row-name .cust{color:var(--muted);font-weight:450}
 .row-sub{font-size:11.5px;color:var(--muted)}
 .row-stage{font-size:12.5px;color:var(--ink2)}
-.row-cmt{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-cmt{font-size:12px;color:var(--muted);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-late{font-size:12.5px;font-weight:600;color:var(--late)}
 .row-late.none{color:var(--muted);font-weight:450}
 
-/* the seven-segment trace: one board's whole journey in one glance */
-.trace{display:flex;align-items:center;gap:0}
-.seg{height:15px;flex:1;border-radius:2px;position:relative}
-.seg + .seg{margin-left:3px}
-.seg[data-s="Completed"]{background:var(--done)}
-.seg[data-s="In Progress"]{background:var(--wip)}
-.seg[data-s="On Hold"]{background:var(--hold)}
-.seg[data-s="Not Started"]{background:var(--wait);opacity:.42}
-.seg[data-s="Cancelled"]{background:var(--stop)}
-.seg[data-s="NA"]{background:transparent;box-shadow:inset 0 0 0 1px var(--rule)}
-.seg[data-s=""]{background:repeating-linear-gradient(45deg,var(--late-bg),var(--late-bg)3px,transparent 3px,transparent 6px);
-                box-shadow:inset 0 0 0 1px var(--late)}
-.seg.here::after{content:"";position:absolute;inset:-4px;border:1.6px solid var(--ink);border-radius:5px}
+/* the stage rail: one board's whole journey, with its due dates */
+.rail7{display:grid;grid-template-columns:repeat(7,1fr);margin-top:11px}
+.node{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:4px}
+.node::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--soft)}
+.node:first-child::before{left:50%}
+.node:last-child::before{right:50%}
+.node.linkdone::before{background:var(--done);opacity:.45}
+.pip{position:relative;width:11px;height:11px;border-radius:50%;background:var(--wait);opacity:.4;
+     box-shadow:0 0 0 3px var(--card)}
+.node[data-s="Completed"] .pip{background:var(--done);opacity:1}
+.node[data-s="In Progress"] .pip{background:var(--wip);opacity:1}
+.node[data-s="On Hold"] .pip{background:var(--hold);opacity:1}
+.node[data-s="Cancelled"] .pip{background:var(--stop);opacity:1}
+.node[data-s="NA"] .pip{background:var(--card);box-shadow:0 0 0 3px var(--card),inset 0 0 0 1.5px var(--rule);opacity:1}
+.node.here .pip{box-shadow:0 0 0 3px var(--card),0 0 0 4.5px var(--ink)}
+.node-l{font-size:10.5px;color:var(--muted);line-height:1.2;text-align:center}
+.node.here .node-l{color:var(--ink);font-weight:600}
+.node-d{font-size:10.5px;color:var(--ink2);line-height:1.2;min-height:13px}
+.node-d.over{color:var(--late);font-weight:600}
+.node-d.none{color:var(--rule)}
+.grp.dense .rail7{display:flex}
+.grp.dense .node-l,.grp.dense .node-d{display:none}
+.grp.dense .node{padding:0}
 
 /* ------------------------------------------------------------------ chips */
 .chip{display:inline-block;font-size:11.5px;font-weight:500;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
@@ -196,8 +208,9 @@ input.field{min-width:230px}
 .loading{padding:60px 20px;text-align:center;color:var(--muted)}
 
 @media (max-width:900px){
-  .row{grid-template-columns:1fr;gap:8px}
+  .row-right{margin-left:0;width:100%}
   .row-cmt{white-space:normal}
+  .node-l,.node-d{font-size:9.5px}
   .f-grid{grid-template-columns:1fr}
   .srow{grid-template-columns:1fr 1fr;}
   .load{grid-template-columns:repeat(4,1fr)}
@@ -230,7 +243,7 @@ input.field{min-width:230px}
 
   <div class="tools">
     <input class="field" id="q" type="search" placeholder="Search a board, customer or owner" aria-label="Search boards">
-    <select class="field" id="f-cust" aria-label="Filter by customer"></select>
+    <select class="field" id="f-cust" aria-label="Filter by project"></select>
     <select class="field" id="f-stage" aria-label="Filter by stage"></select>
     <span class="spacer"></span>
     <span class="count" id="count"></span>
@@ -468,9 +481,9 @@ function receive(data){
 
 function buildFilters(){
   var cs = Array.from(new Set(S.boards.map(function(b){ return b.customer; }))).sort();
-  $('f-cust').innerHTML = '<option value="">All customers</option>' +
+  $('f-cust').innerHTML = '<option value="">Every project</option>' +
     cs.map(function(c){ return '<option' + (c === S.cust ? ' selected' : '') + '>' + esc(c) + '</option>'; }).join('');
-  $('f-stage').innerHTML = '<option value="">All stages</option>' +
+  $('f-stage').innerHTML = '<option value="">Every stage</option>' +
     STAGES.map(function(s){ return '<option value="' + s[2] + '"' + (s[2] === S.stage ? ' selected' : '') +
       '>' + esc(s[2]) + '</option>'; }).join('');
 }
@@ -484,6 +497,8 @@ function visible(){
     if (S.filter === 'done' && isActive(b)) return false;
     if (S.filter === 'late' && !lateDays(b)) return false;
     if (S.filter === 'hold' && b.overall !== 'On Hold') return false;
+    if (S.filter === 'wip' && b.overall !== 'In Progress') return false;
+    if (S.filter === 'idle' && b.overall !== 'Not Started') return false;
     if (S.filter === 'respin' && b.respin !== 'Yes') return false;
     if (S.cust && b.customer !== S.cust) return false;
     if (S.stage && b.current !== S.stage) return false;
@@ -522,13 +537,14 @@ function render(){
     '</button>';
   }).join('');
 
-  // stats
+  // stats — the three numbers Rajesh asks for first, then context
   var stats = [
-    { k: 'active', n: act.length, l: 'Active boards' },
-    { k: 'done',   n: S.boards.length - act.length, l: 'Closed' },
-    { k: 'late',   n: act.filter(lateDays).length, l: 'Past target', c: 'late' },
-    { k: 'hold',   n: act.filter(function(b){ return b.overall === 'On Hold'; }).length, l: 'On hold' },
-    { k: 'respin', n: S.boards.filter(function(b){ return b.respin === 'Yes'; }).length, l: 'Waiting on respin', c: 'respin' }
+    { k: 'wip',    n: act.filter(function(b){ return b.overall === 'In Progress'; }).length, l: 'In progress' },
+    { k: 'hold',   n: act.filter(function(b){ return b.overall === 'On Hold'; }).length, l: 'On hold', c: 'hold' },
+    { k: 'late',   n: act.filter(lateDays).length, l: 'Past due date', c: 'late' },
+    { k: 'idle',   n: act.filter(function(b){ return b.overall === 'Not Started'; }).length, l: 'Not started' },
+    { k: 'respin', n: S.boards.filter(function(b){ return b.respin === 'Yes'; }).length, l: 'Awaiting respin', c: 'respin' },
+    { k: 'done',   n: S.boards.length - act.length, l: 'Closed' }
   ];
   $('stats').innerHTML = stats.map(function(x){
     return '<button class="stat ' + (x.c || '') + (S.filter === x.k ? ' on' : '') + '" data-k="' + x.k + '">' +
@@ -565,22 +581,49 @@ function render(){
   }).join('');
 }
 
+function fmt(iso){
+  if (!iso) return '';
+  var p = iso.split('-'); if (p.length !== 3) return iso;
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p[2] + ' ' + M[+p[1] - 1];
+}
+function overdue(iso){
+  if (!iso) return false;
+  return new Date(iso + 'T23:59:59') < new Date();
+}
+
 function rowHtml(b){
   var d = lateDays(b);
-  var trace = STAGES.map(function(s){
-    var st = (b.stages[s[0]] || {}).status || '';
-    var here = b.current === s[2] ? ' here' : '';
-    return '<span class="seg' + here + '" data-s="' + esc(st) + '" title="' + esc(s[2] + ': ' + (st || 'not recorded')) + '"></span>';
+  var seen = false;
+  var rail = STAGES.map(function(s, i){
+    var v = b.stages[s[0]] || {};
+    var st = v.status || '';
+    var here = b.current === s[2];
+    if (here) seen = true;
+    var link = (!seen && st === 'Completed') ? ' linkdone' : '';
+    var late = st !== 'Completed' && st !== 'NA' && overdue(v.target);
+    return '<span class="node' + (here ? ' here' : '') + link + '" data-s="' + esc(st) + '" ' +
+             'title="' + esc(s[2] + ': ' + (st || 'not recorded') + (v.owner ? ' — ' + v.owner : '')) + '">' +
+             '<span class="pip"></span>' +
+             '<span class="node-l">' + esc(s[1]) + '</span>' +
+             '<span class="node-d' + (late ? ' over' : (v.target ? '' : ' none')) + '">' +
+               (v.target ? fmt(v.target) : '·') + '</span>' +
+           '</span>';
   }).join('');
+
   return '<button class="row" data-p="' + esc(b.project) + '">' +
-    '<span><span class="row-name">' + esc(b.project) + '</span>' +
-      '<span class="row-sub">' + esc(b.manager || 'no manager set') + '</span></span>' +
-    '<span class="trace">' + trace + '</span>' +
-    '<span class="row-stage">' + esc(b.current === 'All Stages Closed' ? 'Closed' : b.current) + '</span>' +
-    '<span><span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span></span>' +
-    '<span class="' + (d ? 'row-late' : 'row-late none') + '">' +
-      (d ? d + ' days past target' : (b.delay === 'No date' ? 'no target date' : '')) +
-      '<span class="row-cmt">' + esc(b.comment || '') + '</span></span>' +
+    '<span class="row-top">' +
+      '<span class="row-name">' + esc(b.project) +
+        (S.cust ? '' : ' <span class="cust">' + esc(b.customer) + '</span>') + '</span>' +
+      '<span class="row-right">' +
+        '<span class="row-stage">' + esc(b.current === 'All Stages Closed' ? 'closed' : b.current) + '</span>' +
+        '<span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span>' +
+        '<span class="' + (d ? 'row-late' : 'row-late none') + '">' +
+          (d ? d + ' days over' : (b.delay === 'No date' ? 'no due date' : 'on time')) + '</span>' +
+      '</span>' +
+    '</span>' +
+    '<span class="rail7">' + rail + '</span>' +
+    (b.comment ? '<span class="row-cmt">' + esc(b.comment) + '</span>' : '') +
   '</button>';
 }
 
