@@ -1,0 +1,76 @@
+<script>
+/**
+ * PEOPLE — the hardware roster, and the join between the short owner names
+ * typed into the sheet ("Samudra", "Anji") and the people they refer to.
+ *
+ * `aliases` is what makes the People tab work: stage owners are recorded as
+ * first names and sometimes combined ("Samudra + Sandhya"), so each cell is
+ * split on "+" and every part matched here.
+ *
+ * Fabricators (PCB Power, JLC, Micropack) are vendors, not staff. They are
+ * listed separately so fab stages are never counted as someone's workload.
+ */
+window.PEOPLE = (function () {
+
+  var ROSTER = [
+    { code: '',       name: 'Srinivasa Rao Supuri',      fn: 'Hardware', yoe: 14,  bill: 'Billed',
+      projects: 'FLC', plan: 'Belly Camera', billedIn: 'Belly Cam',        aliases: ['Srinivas'] },
+    { code: 'VC_124', name: 'Galipothu Sunil Kumar',     fn: 'Hardware', yoe: 18,  bill: 'Billed',
+      projects: 'FLC + TRS + Smart IP Camera', plan: 'Smart IP Camera, PVC Card', billedIn: '', aliases: ['Sunil'] },
+    { code: 'VC_176', name: 'Jampani Samudralankaiah',   fn: 'Hardware', yoe: 6.4, bill: 'Billed',
+      projects: 'FLC + Smart IP Camera + AI Edge Server + RCI ITS',
+      plan: 'Belly Camera, ZMD Edge', billedIn: 'Belly Cam, FLC',          aliases: ['Samudra'] },
+    { code: 'VC_183', name: 'Varimadla Anjaneyulu',      fn: 'Hardware', yoe: 8.1, bill: 'Billed',
+      projects: 'FLC + TRS + Internal / Web + RCI ITS',
+      plan: 'Support to all Projects', billedIn: '',                        aliases: ['Anji', 'Anjaneyulu'] },
+    { code: 'VC_224', name: 'Chintha Vivek Sai',         fn: 'Hardware', yoe: 0.1, bill: 'Billed',
+      projects: 'FLC + TRS + Smart IP Camera',
+      plan: 'need to discuss in August', billedIn: 'Belly Cam',             aliases: ['Vivek'] },
+    { code: 'VC_161', name: 'Veeresh Meeniga',           fn: 'Hardware', yoe: 2.7, bill: 'Billed',
+      projects: 'FLC + RCI ITS + RFSOC',
+      plan: 'need to discuss in Nov', billedIn: 'RCI',                      aliases: ['Veeresh'] },
+    { code: 'VC_141', name: 'Ravada Ramesh',             fn: 'Hardware', yoe: 4.2, bill: 'Billed',
+      projects: 'TRS', plan: 'need to discuss in August', billedIn: '',     aliases: ['Ramesh'] },
+    { code: 'VC_163', name: 'Ruka Nandi Vardhan Reddy',  fn: 'Hardware', yoe: 2.7, bill: 'Billed',
+      projects: 'TRS + Voila Tech + AI Edge Server',
+      plan: 'need to discuss in August', billedIn: '',                      aliases: ['Vardhan'] },
+    { code: 'VC_196', name: 'Keerthi Sepana',            fn: 'Hardware', yoe: 1.3, bill: 'Billed',
+      projects: 'TRS + Voila Tech', plan: 'need to discuss in August', billedIn: '', aliases: ['Keerthi'] },
+    { code: 'VC_200', name: 'Harika Kunduru',            fn: 'Hardware', yoe: 4,   bill: 'Billed',
+      projects: 'Smart IP Camera', plan: 'Smart IP Camera', billedIn: '',   aliases: ['Harika'] },
+    { code: 'VC_229', name: 'Bommi Sandhya',             fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '',                                 aliases: ['Sandhya'] },
+    // Appears as a stage owner but was not in the roster you sent.
+    { code: '',       name: 'Naveen',                    fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '', partial: true,                  aliases: ['Naveen'] },
+    { code: '',       name: 'Rajesh',                    fn: 'Hardware', yoe: null, bill: '',
+      projects: '', plan: '', billedIn: '', partial: true,                  aliases: ['Rajesh Sir', 'Rajesh'] }
+  ];
+
+  var VENDORS = ['Pcb Power', 'PCB Power', 'JLC', 'Micropack'];
+
+  var byAlias = {};
+  ROSTER.forEach(function (p) {
+    p.aliases.forEach(function (a) { byAlias[a.toLowerCase()] = p; });
+    byAlias[p.name.toLowerCase()] = p;
+  });
+  var vendorSet = {};
+  VENDORS.forEach(function (v) { vendorSet[v.toLowerCase()] = true; });
+
+  /** Splits an owner cell into the people it names. Vendors and NA drop out. */
+  function resolve(cell) {
+    if (!cell) return [];
+    return String(cell).split('+').map(function (s) { return s.trim(); })
+      .filter(function (s) { return s && s.toUpperCase() !== 'NA' && !vendorSet[s.toLowerCase()]; })
+      .map(function (s) {
+        return byAlias[s.toLowerCase()] ||
+               { code: '', name: s, fn: '', yoe: null, bill: '', projects: '', plan: '',
+                 billedIn: '', partial: true, aliases: [s], unknown: true };
+      });
+  }
+
+  function isVendor(cell) { return !!vendorSet[String(cell || '').trim().toLowerCase()]; }
+
+  return { roster: ROSTER, resolve: resolve, isVendor: isVendor, vendors: VENDORS };
+})();
+</script>
