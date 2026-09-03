@@ -96,31 +96,43 @@ input.field{min-width:230px}
 .grp.open .grp-body{display:block}
 
 /* ------------------------------------------------------------ board rows */
-.row{display:grid;grid-template-columns:minmax(190px,1.5fr) 250px 118px 92px minmax(150px,1.6fr);
-     gap:14px;align-items:center;padding:11px 16px;border-top:1px solid var(--soft);
-     width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.row{display:block;padding:13px 16px 15px;border-top:1px solid var(--soft);width:100%;
+     background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.row-top{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.row-right{margin-left:auto;display:flex;gap:11px;align-items:baseline}
 .row:first-child{border-top:0}
 .row:hover{background:#F7F9FB}
 .row-name{font-weight:500;font-size:13.5px;overflow-wrap:anywhere}
+.row-name .cust{color:var(--muted);font-weight:450}
 .row-sub{font-size:11.5px;color:var(--muted)}
 .row-stage{font-size:12.5px;color:var(--ink2)}
-.row-cmt{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-cmt{font-size:12px;color:var(--muted);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-late{font-size:12.5px;font-weight:600;color:var(--late)}
 .row-late.none{color:var(--muted);font-weight:450}
 
-/* the seven-segment trace: one board's whole journey in one glance */
-.trace{display:flex;align-items:center;gap:0}
-.seg{height:15px;flex:1;border-radius:2px;position:relative}
-.seg + .seg{margin-left:3px}
-.seg[data-s="Completed"]{background:var(--done)}
-.seg[data-s="In Progress"]{background:var(--wip)}
-.seg[data-s="On Hold"]{background:var(--hold)}
-.seg[data-s="Not Started"]{background:var(--wait);opacity:.42}
-.seg[data-s="Cancelled"]{background:var(--stop)}
-.seg[data-s="NA"]{background:transparent;box-shadow:inset 0 0 0 1px var(--rule)}
-.seg[data-s=""]{background:repeating-linear-gradient(45deg,var(--late-bg),var(--late-bg)3px,transparent 3px,transparent 6px);
-                box-shadow:inset 0 0 0 1px var(--late)}
-.seg.here::after{content:"";position:absolute;inset:-4px;border:1.6px solid var(--ink);border-radius:5px}
+/* the stage rail: one board's whole journey, with its due dates */
+.rail7{display:grid;grid-template-columns:repeat(7,1fr);margin-top:11px}
+.node{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:4px}
+.node::before{content:"";position:absolute;left:0;right:0;top:9px;height:2px;background:var(--soft)}
+.node:first-child::before{left:50%}
+.node:last-child::before{right:50%}
+.node.linkdone::before{background:var(--done);opacity:.45}
+.pip{position:relative;width:11px;height:11px;border-radius:50%;background:var(--wait);opacity:.4;
+     box-shadow:0 0 0 3px var(--card)}
+.node[data-s="Completed"] .pip{background:var(--done);opacity:1}
+.node[data-s="In Progress"] .pip{background:var(--wip);opacity:1}
+.node[data-s="On Hold"] .pip{background:var(--hold);opacity:1}
+.node[data-s="Cancelled"] .pip{background:var(--stop);opacity:1}
+.node[data-s="NA"] .pip{background:var(--card);box-shadow:0 0 0 3px var(--card),inset 0 0 0 1.5px var(--rule);opacity:1}
+.node.here .pip{box-shadow:0 0 0 3px var(--card),0 0 0 4.5px var(--ink)}
+.node-l{font-size:10.5px;color:var(--muted);line-height:1.2;text-align:center}
+.node.here .node-l{color:var(--ink);font-weight:600}
+.node-d{font-size:10.5px;color:var(--ink2);line-height:1.2;min-height:13px}
+.node-d.over{color:var(--late);font-weight:600}
+.node-d.none{color:var(--rule)}
+.grp.dense .rail7{display:flex}
+.grp.dense .node-l,.grp.dense .node-d{display:none}
+.grp.dense .node{padding:0}
 
 /* ------------------------------------------------------------------ chips */
 .chip{display:inline-block;font-size:11.5px;font-weight:500;padding:2.5px 9px;border-radius:20px;white-space:nowrap}
@@ -195,8 +207,9 @@ input.field{min-width:230px}
 .loading{padding:60px 20px;text-align:center;color:var(--muted)}
 
 @media (max-width:900px){
-  .row{grid-template-columns:1fr;gap:8px}
+  .row-right{margin-left:0;width:100%}
   .row-cmt{white-space:normal}
+  .node-l,.node-d{font-size:9.5px}
   .f-grid{grid-template-columns:1fr}
   .srow{grid-template-columns:1fr 1fr;}
   .load{grid-template-columns:repeat(4,1fr)}
