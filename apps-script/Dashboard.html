@@ -57,17 +57,27 @@ button,input,select,textarea{font:inherit;color:inherit}
 .load-n.zero{color:var(--muted);font-weight:450}
 .load-bar{display:flex;flex-direction:column;justify-content:flex-end;border-radius:3px;
           background:var(--soft);overflow:hidden}
-.load-ok{background:var(--wip)}
+.load-ok{background:var(--stage,var(--wip))}
 .load-late{background:var(--late)}
-.load-name{font-size:13px;color:var(--ink2);line-height:1.2;overflow-wrap:anywhere}
+.load-name{font-size:13px;color:var(--stage,var(--ink2));font-weight:500;line-height:1.2;overflow-wrap:anywhere}
 .load-sub{font-size:12px;color:var(--late);font-weight:500;min-height:14px;line-height:1.2}
 .load-col:hover .load-bar{outline:1.5px solid var(--ink);outline-offset:1px}
 .load-col.on .load-bar{outline:1.5px solid var(--ink);outline-offset:1px}
 
 /* ------------------------------------------------------------------ stats */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0 0}
-.stat{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:13px 15px;
+.stat{background:var(--tint,var(--card));border:1px solid var(--rule);border-radius:8px;padding:14px 16px;
       cursor:pointer;text-align:left}
+.stat.wip{--tint:#FBF1DE;border-color:#EBD9AE}
+.stat.hold{--tint:#F8E5DE;border-color:#EBC7B7}
+.stat.late{--tint:#F9E2E5;border-color:#EEC2C7}
+.stat.idle{--tint:#E9EDF2;border-color:#D3DBE4}
+.stat.respin{--tint:#F3E7DD;border-color:#E0C9B4}
+.stat.done{--tint:#E1EFE7;border-color:#BFDCCC}
+.stat.wip .stat-n{color:var(--wip)}
+.stat.hold .stat-n{color:var(--hold)}
+.stat.idle .stat-n{color:var(--wait)}
+.stat.done .stat-n{color:var(--done)}
 .stat:hover{border-color:var(--ink2)}
 .stat.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
 .stat-n{font-size:29px;font-weight:600;line-height:1.1}
@@ -84,7 +94,8 @@ input.field{min-width:230px}
 .count{color:var(--muted);font-size:13.5px}
 
 /* -------------------------------------------------------------- accordion */
-.grp{background:var(--card);border:1px solid var(--rule);border-radius:9px;margin-bottom:9px;overflow:hidden}
+.grp{background:var(--card);border:1px solid var(--rule);border-radius:9px;margin-bottom:9px;overflow:hidden;
+     border-left:4px solid var(--accent,var(--rule))}
 .grp-h{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;width:100%;
        background:none;border:0;text-align:left}
 .grp-h:hover{background:#F7F9FB}
@@ -92,6 +103,8 @@ input.field{min-width:230px}
        transform:rotate(-45deg);transition:transform .16s ease;flex:none;margin-right:2px}
 .grp.open .caret{transform:rotate(45deg)}
 .grp-name{font-weight:600;font-size:16.5px}
+.grp-dot{width:9px;height:9px;border-radius:50%;background:var(--accent,var(--muted));flex:none}
+.grp-h:hover{background:color-mix(in srgb,var(--accent,#000) 5%,transparent)}
 .grp-tags{margin-left:auto;display:flex;gap:7px;align-items:center}
 .tag{font-size:12.5px;padding:3px 10px;border-radius:20px;background:var(--soft);color:var(--ink2)}
 .tag.late{background:var(--late-bg);color:var(--late);font-weight:500}
@@ -110,7 +123,10 @@ input.field{min-width:230px}
 .row-name .cust{color:var(--muted);font-weight:450}
 .row-sub{font-size:12.5px;color:var(--muted)}
 .row-stage{font-size:14px;color:var(--ink2)}
-.row-cmt{font-size:13px;color:var(--muted);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-cmt{font-size:13px;color:var(--ink2);margin-top:9px;display:-webkit-box;-webkit-line-clamp:2;
+         -webkit-box-orient:vertical;overflow:hidden}
+.row-note{font-size:12.5px;color:var(--wip);margin-top:4px;display:block}
+.row-meta{font-size:12.5px;color:var(--muted)}
 .row-late{font-size:14px;font-weight:600;color:var(--late)}
 .row-late.none{color:var(--muted);font-weight:450}
 
@@ -139,6 +155,10 @@ input.field{min-width:230px}
 .node-d{font-size:12px;color:var(--ink2);line-height:1.2;min-height:15px}
 .node-d.over{color:var(--late);font-weight:600}
 .node-d.none{color:var(--rule)}
+.node-o{font-size:11px;color:var(--muted);line-height:1.2;min-height:14px;overflow:hidden;
+        text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.node[data-s="NA"] .node-o{visibility:hidden}
+.node.here .node-o{color:var(--ink2);font-weight:500}
 .grp.dense .rail7{display:flex}
 .grp.dense .node-l,.grp.dense .node-d{display:none}
 .grp.dense .node{padding:0}
@@ -460,6 +480,13 @@ var S = { boards: [], lists: {}, q: '', cust: '', stage: '', filter: 'active', o
 
 var STAGES = PCBForm.STAGES;                       // [key, short, full] — process order
 var CLOSED = { 'Completed': 1, 'NA': 1, 'Cancelled': 1 };
+var STAGE_HUE = ['var(--st1)','var(--st2)','var(--st3)','var(--st4)','var(--st5)','var(--st6)','var(--st7)'];
+var ACCENTS = ['#2E6F9E','#B5762A','#4C8A55','#8B5573','#3B8080','#AE5A33','#6A5FA8','#8A7C33','#A8446B','#3F6E8C','#7A6A55'];
+function accent(name){
+  var h = 0;
+  for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return ACCENTS[h % ACCENTS.length];
+}
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
@@ -540,7 +567,8 @@ function render(){
   $('load').innerHTML = per.map(function(p){
     var h = p.n ? Math.round(16 + (p.n / max) * 74) : 4;
     var lateH = p.n ? Math.round(h * (p.late / p.n)) : 0;
-    return '<button class="load-col' + (S.stage === p.s[2] ? ' on' : '') + '" data-stage="' + p.s[2] + '">' +
+    return '<button class="load-col' + (S.stage === p.s[2] ? ' on' : '') + '" data-stage="' + p.s[2] +
+             '" style="--stage:' + STAGE_HUE[per.indexOf(p)] + '">' +
       '<span class="load-n' + (p.n ? '' : ' zero') + '">' + p.n + '</span>' +
       '<span class="load-bar" style="height:' + h + 'px">' +
         (lateH ? '<span class="load-ok" style="flex:1"></span><span class="load-late" style="height:' + lateH + 'px"></span>'
@@ -583,8 +611,10 @@ function render(){
     var late = g.filter(lateDays).length;
     var hold = g.filter(function(b){ return b.overall === 'On Hold'; }).length;
     var open = S.open[name] !== false;
-    return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(name) + '">' +
-      '<button class="grp-h"><span class="caret"></span><span class="grp-name">' + esc(name) + '</span>' +
+    return '<section class="grp' + (open ? ' open' : '') + '" data-g="' + esc(name) +
+             '" style="--accent:' + accent(name) + '">' +
+      '<button class="grp-h"><span class="caret"></span><span class="grp-dot"></span>' +
+        '<span class="grp-name">' + esc(name) + '</span>' +
         '<span class="grp-tags">' +
           '<span class="tag">' + g.length + ' board' + (g.length === 1 ? '' : 's') + '</span>' +
           (hold ? '<span class="tag hold">' + hold + ' on hold</span>' : '') +
@@ -618,27 +648,32 @@ function rowHtml(b){
     var late = st !== 'Completed' && st !== 'NA' && overdue(v.target);
     return '<span class="node' + (here ? ' here' : '') + link + '" data-s="' + esc(st) + '" ' +
              'title="' + esc(s[2] + ': ' + (st === 'NA' ? 'does not apply to this board' : (st || 'not recorded')) +
-                             (v.owner && st !== 'NA' ? ' — ' + v.owner : '')) + '">' +
+                          (v.owner && st !== 'NA' ? ' — ' + v.owner : '')) + '">' +
              '<span class="pip"></span>' +
              '<span class="node-l">' + esc(s[1]) + '</span>' +
              '<span class="node-d' + (late ? ' over' : (v.target ? '' : ' none')) + '">' +
                (v.target ? fmt(v.target) : '·') + '</span>' +
+             '<span class="node-o">' + esc(v.owner || '') + '</span>' +
            '</span>';
   }).join('');
 
+  var pct = typeof b.pct === 'number' ? Math.round(b.pct * 100) + '% done' : '';
   return '<button class="row" data-p="' + esc(b.project) + '">' +
     '<span class="row-top">' +
       '<span class="row-name">' + esc(b.project) +
         (S.cust ? '' : ' <span class="cust">' + esc(b.customer) + '</span>') + '</span>' +
       '<span class="row-right">' +
+        '<span class="row-meta">' + esc(b.manager || 'no manager') + (pct ? ' · ' + pct : '') + '</span>' +
         '<span class="row-stage">' + esc(b.current === 'All Stages Closed' ? 'closed' : b.current) + '</span>' +
         '<span class="chip" data-s="' + esc(b.overall) + '">' + esc(b.overall) + '</span>' +
         '<span class="' + (d ? 'row-late' : 'row-late none') + '">' +
-          (d ? d + ' days over' : (b.delay === 'No date' ? 'no due date' : 'on time')) + '</span>' +
+          (d ? d + ' days over' : (b.delay === 'No date' || b.delay === 'Date not added' ? 'no due date' : 'on time')) + '</span>' +
       '</span>' +
     '</span>' +
     '<span class="rail7">' + rail + '</span>' +
     (b.comment ? '<span class="row-cmt">' + esc(b.comment) + '</span>' : '') +
+    (b.holdreason ? '<span class="row-note">Reason: ' + esc(b.holdreason) + '</span>' : '') +
+    (b.notes ? '<span class="row-note">Check: ' + esc(b.notes) + '</span>' : '') +
   '</button>';
 }
 
