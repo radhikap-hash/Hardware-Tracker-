@@ -11,14 +11,19 @@ const SH_DONE   = 'COMPLETED';
 const SH_ACTIVE = 'ACTIVE';
 const SH_LISTS  = 'LISTS';
 
+/**
+ * Process order. `name` is matched against each sheet's group header with the
+ * "S<n> " prefix stripped, so renumbering or reordering the columns on a sheet
+ * cannot break the script — only renaming a stage would.
+ */
 const STAGES = [
-  { key: 'S1', short: 'Schematic', full: 'S1 Schematic' },
-  { key: 'S2', short: 'BOM',       full: 'S2 BOM Procurement' },
-  { key: 'S3', short: 'Layout',    full: 'S3 PCB Layout' },
-  { key: 'S4', short: 'SI & PI',   full: 'S4 SI & PI' },
-  { key: 'S5', short: 'Fab',       full: 'S5 Bare-PCB Fab' },
-  { key: 'S6', short: 'Assembly',  full: 'S6 Assembly' },
-  { key: 'S7', short: 'Bring-up',  full: 'S7 Bring-up' }
+  { key: 'SCH',  short: 'Schematic', name: 'SCHEMATIC',       full: 'S1 Schematic' },
+  { key: 'LAY',  short: 'Layout',    name: 'PCB LAYOUT',      full: 'S2 PCB Layout' },
+  { key: 'SIPI', short: 'SI & PI',   name: 'SI & PI',         full: 'S3 SI & PI' },
+  { key: 'FAB',  short: 'Fab',       name: 'BARE-PCB FAB',    full: 'S4 Bare-PCB Fab' },
+  { key: 'ASM',  short: 'Assembly',  name: 'ASSEMBLY',        full: 'S5 Assembly' },
+  { key: 'BRU',  short: 'Bring-up',  name: 'BRING-UP',        full: 'S6 Bring-up' },
+  { key: 'BOM',  short: 'BOM',       name: 'BOM PROCUREMENT', full: 'S7 BOM Procurement' }
 ];
 
 const STATUSES = ['Completed', 'In Progress', 'On Hold', 'Not Started', 'NA', 'Cancelled'];
@@ -73,11 +78,18 @@ function layout_(sheet) {
   if (cache[key]) return cache[key];
 
   const scan = sheet.getRange(1, 1, Math.min(30, sheet.getMaxRows()), sheet.getMaxColumns()).getValues();
+  const stripN = s => String(s).trim().toUpperCase().replace(/^S\d+\s+/, '');
+
+  // ACTIVE has two rows containing "Project / Board" — the respin queue and the
+  // real table. Take the one whose row above carries the stage group headers.
   let headerRow = -1;
-  for (let r = 0; r < scan.length; r++) {
-    if (scan[r].some(v => String(v).trim() === 'Project / Board')) { headerRow = r + 1; break; }
+  for (let r = 1; r < scan.length; r++) {
+    if (!scan[r].some(v => String(v).trim() === 'Project / Board')) continue;
+    const above = scan[r - 1].map(stripN);
+    if (STAGES.every(s => above.indexOf(s.name) >= 0)) { headerRow = r + 1; break; }
   }
-  if (headerRow < 0) throw new Error('Could not find the header row on ' + key + '. Look for a cell reading "Project / Board".');
+  if (headerRow < 0) throw new Error('Could not find the board table on ' + key +
+    '. It needs a row with "Project / Board" and the stage group headers directly above it.');
 
   const head  = scan[headerRow - 1].map(v => String(v).trim());
   const group = scan[headerRow - 2].map(v => String(v).trim());
@@ -98,16 +110,18 @@ function layout_(sheet) {
   col.reason   = byName('Respin Reason');
   col.raised   = byName('Raised On');
   col.rev      = byName('Rev / Respin No.');
+  col.holdreason = byName('Hold / delay reason');
   col.action   = byName('ACTION');
 
-  // Stage blocks are located from the merged group header above the field row.
+  // Stage blocks are found by name, ignoring the S<n> prefix, so the two sheets
+  // may number or order their columns differently without affecting anything.
   col.stage = {};
   STAGES.forEach(function (s) {
     let start = -1;
     for (let i = 0; i < group.length; i++) {
-      if (group[i] && group[i].toUpperCase().indexOf(s.full.toUpperCase()) === 0) { start = i + 1; break; }
+      if (group[i] && stripN(group[i]) === s.name) { start = i + 1; break; }
     }
-    if (start < 0) throw new Error('Could not find the "' + s.full + '" block on ' + key + '.');
+    if (start < 0) throw new Error('Could not find the "' + s.name + '" block on ' + key + '.');
     col.stage[s.key] = { owner: start, status: start + 1, target: start + 2 };
   });
 
@@ -174,6 +188,7 @@ function getBoards() {
         reason: c.reason ? String(row[c.reason - 1] || '').trim() : '',
         raised: c.raised ? iso_(row[c.raised - 1]) : '',
         rev: c.rev ? row[c.rev - 1] : '',
+        holdreason: c.holdreason ? String(row[c.holdreason - 1] || '').trim() : '',
         stages: {}
       };
       STAGES.forEach(function (s) {
@@ -201,7 +216,8 @@ function getLists() {
     statuses: col(1).length ? col(1) : STATUSES,
     stages: STAGES.map(s => s.full),
     reasons: col(3),
-    customers: col(5)
+    customers: col(5),
+    holdReasons: col(6)
   };
 }
 
@@ -258,6 +274,7 @@ function writeRow_(sheet, row, p) {
     set(c.raised, p.raised ? new Date(p.raised + 'T00:00:00') : '');
   } else {
     set(c.rev, p.rev || '');
+    set(c.holdreason, p.holdreason || '');
     set(c.reentry, p.reentry || '');
     set(c.reason, p.reason || '');
     set(c.raised, p.raised ? new Date(p.raised + 'T00:00:00') : '');
