@@ -71,6 +71,22 @@ window.PEOPLE = (function () {
 
   function isVendor(cell) { return !!vendorSet[String(cell || '').trim().toLowerCase()]; }
 
-  return { roster: ROSTER, resolve: resolve, isVendor: isVendor, vendors: VENDORS };
+  /**
+   * Options for the Owner dropdown. The value is the short name the sheet
+   * already uses ("Vardhan"), so picking from the list keeps the sheet
+   * consistent with what has been typed by hand until now.
+   */
+  function ownerOptions(stageKey){
+    var out = ROSTER.filter(function(p){ return !p.partial || p.name === 'Naveen'; })
+      .map(function(p){ return { v: p.aliases[0], label: p.name + ' (' + p.aliases[0] + ')' }; });
+    if (stageKey === 'FAB') {
+      out = ['PCB Power', 'JLC', 'Micropack'].map(function(v){ return { v: v, label: v + ' (fabricator)' }; })
+              .concat(out);
+    }
+    return out;
+  }
+
+  return { roster: ROSTER, resolve: resolve, isVendor: isVendor,
+           vendors: VENDORS, ownerOptions: ownerOptions };
 })();
 </script>
