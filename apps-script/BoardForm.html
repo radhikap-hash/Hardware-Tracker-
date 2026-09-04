@@ -145,6 +145,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .stbl td.act{width:1%;white-space:nowrap;text-align:right}
 
 /* ------------------------------------------------------------ health tab */
+.hsum{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:17px 20px;margin-top:14px}
+.hsum h3{margin:0 0 3px;font-size:17px;font-weight:600}
+.hsum p{margin:0;font-size:13.5px;color:var(--muted)}
+.issues{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+.issue{display:grid;grid-template-columns:56px 1fr auto;gap:15px;align-items:center;
+       background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--sev,var(--rule));
+       border-radius:9px;padding:14px 17px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.issue:hover{border-color:var(--ink2);border-left-color:var(--sev)}
+.issue-n{font-size:27px;font-weight:600;color:var(--sev);line-height:1;text-align:center}
+.issue-t{font-size:15px;font-weight:600;line-height:1.3}
+.issue-d{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.4}
+.issue-go{font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.issue.ok{--sev:var(--done);cursor:default}
+.issue.ok .issue-n{font-size:20px}
+
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
 .hcard{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:16px 18px}
 .hcard h4{margin:0 0 3px;font-size:13px;font-weight:600;color:var(--ink2)}
@@ -168,18 +183,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero-row .hero{margin:0;height:100%}
 
 /* company-wise completion */
-.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;
-     max-height:230px;overflow:auto;padding-right:2px}
-.co-row{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--accent);
-        border-radius:8px;padding:11px 12px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
-.co-row:hover{border-color:var(--ink2);border-top-color:var(--accent)}
+.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;
+     max-height:236px;overflow:auto;padding:1px 3px 1px 1px}
+.co-row{display:block;width:100%;background:var(--card);border:1px solid var(--rule);
+        border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px 11px;
+        cursor:pointer;text-align:left;font:inherit;color:inherit}
+.co-row:hover{border-color:var(--ink2);border-left-color:var(--accent)}
 .co-row.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
-.co-pct{font-size:24px;font-weight:600;line-height:1;color:var(--accent)}
-.co-name{font-size:12.5px;color:var(--ink);font-weight:500;margin-top:4px;line-height:1.25;
-         overflow-wrap:anywhere}
-.co-sub{font-size:11px;color:var(--muted);font-weight:450;display:block;margin-top:2px}
-.co-track{height:5px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
-.co-fill{height:100%;background:var(--accent);border-radius:3px}
+.co-top{display:flex;align-items:baseline;gap:8px}
+.co-name{display:block;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25;
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.co-pct{display:block;font-size:16px;font-weight:600;color:var(--accent);line-height:1.2;flex:none}
+.co-track{display:block;height:6px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
+.co-fill{display:block;height:100%;background:var(--accent);border-radius:3px}
+.co-sub{display:block;font-size:11.5px;color:var(--muted);font-weight:450;margin-top:6px}
 
 /* ---------------------------------------------------------- stage tables */
 .stbl{width:100%;border-collapse:collapse;font-size:13.5px}
