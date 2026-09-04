@@ -146,6 +146,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .stbl td.act{width:1%;white-space:nowrap;text-align:right}
 
 /* ------------------------------------------------------------ health tab */
+.hsum{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:17px 20px;margin-top:14px}
+.hsum h3{margin:0 0 3px;font-size:17px;font-weight:600}
+.hsum p{margin:0;font-size:13.5px;color:var(--muted)}
+.issues{margin-top:12px;display:flex;flex-direction:column;gap:9px}
+.issue{display:grid;grid-template-columns:56px 1fr auto;gap:15px;align-items:center;
+       background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--sev,var(--rule));
+       border-radius:9px;padding:14px 17px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.issue:hover{border-color:var(--ink2);border-left-color:var(--sev)}
+.issue-n{font-size:27px;font-weight:600;color:var(--sev);line-height:1;text-align:center}
+.issue-t{font-size:15px;font-weight:600;line-height:1.3}
+.issue-d{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.4}
+.issue-go{font-size:12.5px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.issue.ok{--sev:var(--done);cursor:default}
+.issue.ok .issue-n{font-size:20px}
+
 .hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:11px;margin-top:14px}
 .hcard{background:var(--card);border:1px solid var(--rule);border-radius:9px;padding:16px 18px}
 .hcard h4{margin:0 0 3px;font-size:13px;font-weight:600;color:var(--ink2)}
@@ -169,18 +184,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 .hero-row .hero{margin:0;height:100%}
 
 /* company-wise completion */
-.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px;
-     max-height:230px;overflow:auto;padding-right:2px}
-.co-row{background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--accent);
-        border-radius:8px;padding:11px 12px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit}
-.co-row:hover{border-color:var(--ink2);border-top-color:var(--accent)}
+.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:9px;
+     max-height:236px;overflow:auto;padding:1px 3px 1px 1px}
+.co-row{display:block;width:100%;background:var(--card);border:1px solid var(--rule);
+        border-left:4px solid var(--accent);border-radius:8px;padding:10px 12px 11px;
+        cursor:pointer;text-align:left;font:inherit;color:inherit}
+.co-row:hover{border-color:var(--ink2);border-left-color:var(--accent)}
 .co-row.on{box-shadow:inset 0 0 0 1.5px var(--ink)}
-.co-pct{font-size:24px;font-weight:600;line-height:1;color:var(--accent)}
-.co-name{font-size:12.5px;color:var(--ink);font-weight:500;margin-top:4px;line-height:1.25;
-         overflow-wrap:anywhere}
-.co-sub{font-size:11px;color:var(--muted);font-weight:450;display:block;margin-top:2px}
-.co-track{height:5px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
-.co-fill{height:100%;background:var(--accent);border-radius:3px}
+.co-top{display:flex;align-items:baseline;gap:8px}
+.co-name{display:block;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.25;
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.co-pct{display:block;font-size:16px;font-weight:600;color:var(--accent);line-height:1.2;flex:none}
+.co-track{display:block;height:6px;border-radius:3px;background:var(--soft);margin-top:8px;overflow:hidden}
+.co-fill{display:block;height:100%;background:var(--accent);border-radius:3px}
+.co-sub{display:block;font-size:11.5px;color:var(--muted);font-weight:450;margin-top:6px}
 
 /* ---------------------------------------------------------- stage tables */
 .stbl{width:100%;border-collapse:collapse;font-size:13.5px}
@@ -1159,18 +1176,20 @@ function render(){
       c.scope++; if (st === 'Completed') c.done++;
     });
   });
+  // biggest customers first — a one-board customer at 0% is noise at the top
   var coNames = Object.keys(byCo).sort(function(a, c){
-    return (byCo[a].done / (byCo[a].scope || 1)) - (byCo[c].done / (byCo[c].scope || 1));
+    return byCo[c].n - byCo[a].n ||
+           (byCo[a].done / (byCo[a].scope || 1)) - (byCo[c].done / (byCo[c].scope || 1));
   });
   $('co').innerHTML = coNames.map(function(name){
     var c = byCo[name];
     var pct = c.scope ? Math.round((c.done / c.scope) * 100) : 0;
     return '<button class="co-row' + (S.cust === name ? ' on' : '') + '" data-co="' + esc(name) +
-             '" style="--accent:' + accent(name) + '">' +
-      '<span class="co-pct">' + pct + '%</span>' +
-      '<span class="co-name">' + esc(name) +
-        '<span class="co-sub">' + c.closed + ' of ' + c.n + ' closed</span></span>' +
+             '" style="--accent:' + accent(name) + '" title="' + esc(name) + '">' +
+      '<span class="co-top"><span class="co-name">' + esc(name) + '</span>' +
+        '<span class="co-pct">' + pct + '%</span></span>' +
       '<span class="co-track"><span class="co-fill" style="width:' + pct + '%"></span></span>' +
+      '<span class="co-sub">' + c.closed + ' of ' + c.n + ' boards done</span>' +
     '</button>';
   }).join('');
 
@@ -1523,55 +1542,78 @@ function prevStageName(t){
 
 /* ------------------------------------------------------- delivery health */
 
+/**
+ * Delivery Health reads as a ranked list of what is wrong and where to go and
+ * fix it, rather than a wall of percentages. Each row is clickable and lands on
+ * the tab and filter that shows the boards behind the number.
+ */
 function renderHealth(){
   var act = S.boards.filter(isActive);
   var T = tasks();
   var late = T.filter(function(t){ return taskLate(t) > 0; });
-  var noEdc = T.filter(function(t){ return !t.edc; });
+  var stuckNoDate = T.filter(function(t){ return !t.edc && t.after === 0; });
   var onHold = act.filter(function(b){ return b.overall === 'On Hold'; });
   var noReason = onHold.filter(function(b){ return !b.holdreason; });
+  var unassigned = T.filter(function(t){ return t.after === 0 && !t.owner; });
 
   var loadBy = {};
   T.forEach(function(t){ t.people.forEach(function(p){ loadBy[p.name] = (loadBy[p.name] || 0) + 1; }); });
   var loadNames = Object.keys(loadBy).sort(function(a, c){ return loadBy[c] - loadBy[a]; });
   var loadMax = loadNames.length ? loadBy[loadNames[0]] : 1;
-  var totalLoad = T.length || 1;
-  var topName = loadNames[0] || '—';
-  var topShare = loadNames.length ? Math.round(loadBy[topName] / totalLoad * 100) : 0;
-  var coverage = T.length ? Math.round((T.length - noEdc.length) / T.length * 100) : 0;
-  var lateBoards = {};
-  late.forEach(function(t){ lateBoards[t.board.project] = 1; });
+  var topName = loadNames[0] || '';
+  var topShare = loadNames.length ? Math.round(loadBy[topName] / (T.length || 1) * 100) : 0;
 
-  var stageMix = STAGES.map(function(s){
-    return { s: s,
-      n: T.filter(function(t){ return t.stage[0] === s[0]; }).length,
-      l: T.filter(function(t){ return t.stage[0] === s[0] && taskLate(t) > 0; }).length };
-  });
-  var mixMax = Math.max.apply(null, stageMix.map(function(x){ return x.n; }).concat([1]));
+  var lateBoards = {}; late.forEach(function(t){ lateBoards[t.board.project] = 1; });
+
+  var issues = [];
+  if (late.length) issues.push({ n: late.length, sev: 'var(--late)',
+    t: 'stages have missed their date',
+    d: 'Across ' + Object.keys(lateBoards).length + ' board' + (Object.keys(lateBoards).length === 1 ? '' : 's') +
+       '. The longest is ' + Math.max.apply(null, late.map(taskLate)) + ' days over.',
+    go: 'Schedule', tab: 'schedule' });
+
+  if (stuckNoDate.length) issues.push({ n: stuckNoDate.length, sev: 'var(--wip)',
+    t: 'boards have no date on the stage they are stuck at',
+    d: 'Nothing can be reported late until these have an EDC. This is the single biggest gap in the tracker.',
+    go: 'Schedule', tab: 'schedule' });
+
+  if (unassigned.length) issues.push({ n: unassigned.length, sev: 'var(--wip)',
+    t: 'current stages have nobody assigned',
+    d: 'Work sitting at a stage with an empty Owner cell. Nobody is accountable for it.',
+    go: 'Boards', tab: 'boards' });
+
+  if (noReason.length) issues.push({ n: noReason.length, sev: 'var(--hold)',
+    t: 'boards are on hold with no reason recorded',
+    d: onHold.length + ' board' + (onHold.length === 1 ? ' is' : 's are') + ' paused in total. Without a reason ' +
+       'nobody can chase the blocker or count how often it happens.',
+    go: 'Boards', tab: 'boards' });
+
+  if (topShare >= 18) issues.push({ n: topShare + '%', sev: 'var(--hold)',
+    t: 'of all open work sits with ' + topName,
+    d: topName + ' holds ' + loadBy[topName] + ' of the ' + T.length +
+       ' open stages. If they take leave, that much work stops.',
+    go: 'People', tab: 'people' });
+
+  if (!issues.length) issues.push({ n: 'OK', sev: 'var(--done)', ok: true,
+    t: 'Nothing needs attention', d: 'Every open stage has a date, an owner, and is inside its EDC.', go: '' });
 
   $('health').innerHTML =
-    '<div class="hgrid">' +
-      card(coverage + '%', coverage >= 80 ? 'ok' : (coverage >= 50 ? 'warn' : 'bad'),
-        'Stages with a date',
-        'Only ' + (T.length - noEdc.length) + ' of ' + T.length + ' open stages have an EDC.',
-        noEdc.length ? 'Until the rest have dates, nothing can be called late.' : 'Every open stage has a date.') +
-      card(String(late.length), late.length ? 'bad' : 'ok',
-        'Stages running late',
-        'Spread across ' + Object.keys(lateBoards).length + ' board' +
-          (Object.keys(lateBoards).length === 1 ? '' : 's') + '.',
-        late.length ? 'See the Overdue column on the Schedule tab.' : 'Nothing is past its EDC.') +
-      card(topShare + '%', topShare >= 25 ? 'bad' : (topShare >= 18 ? 'warn' : 'ok'),
-        'Carried by one person',
-        esc(topName) + ' holds ' + (loadBy[topName] || 0) + ' of the ' + T.length + ' open stages.',
-        topShare >= 18 ? 'If they take leave, that much work stops.' : 'Load is reasonably spread.') +
-      card(noReason.length + ' of ' + onHold.length, noReason.length ? 'warn' : 'ok',
-        'Holds with no reason',
-        'Boards paused without anyone recording why.',
-        noReason.length ? 'Fill column AK so holds can be chased.' : 'Every hold has a reason.') +
-    '</div>' +
+    '<div class="hsum"><h3>' + act.length + ' boards in progress, ' + T.length + ' open stages</h3>' +
+      '<p>' + (late.length ? late.length + ' past their date · ' : '') +
+              onHold.length + ' on hold · ' + stuckNoDate.length + ' waiting on a date</p></div>' +
+
+    '<div class="issues">' + issues.map(function(x){
+      return '<button class="issue' + (x.ok ? ' ok' : '') + '" style="--sev:' + x.sev + '"' +
+               (x.tab ? ' data-goto="' + x.tab + '"' : '') + '>' +
+        '<span class="issue-n">' + x.n + '</span>' +
+        '<span><span class="issue-t">' + esc(x.t) + '</span>' +
+          '<span class="issue-d">' + esc(x.d) + '</span></span>' +
+        '<span class="issue-go">' + (x.go ? x.go + ' \u2192' : '') + '</span>' +
+      '</button>';
+    }).join('') + '</div>' +
 
     '<div class="hcard" style="margin-top:12px"><h4>Who is carrying the open work</h4>' +
-      '<p>Open stages per person. The red part of each bar is already past its EDC. Fabrication vendors excluded.</p>' +
+      '<p>Open stages per person. The red part is already past its date. Fabrication vendors excluded.</p>' +
       '<div class="hbars">' + loadNames.map(function(n){
         var lateN = T.filter(function(t){ return taskLate(t) > 0 &&
           t.people.some(function(p){ return p.name === n; }); }).length;
@@ -1585,36 +1627,18 @@ function renderHealth(){
 
     '<div class="hcard" style="margin-top:12px"><h4>Where the queue is deepest</h4>' +
       '<p>Open stages by process step, whichever board they belong to.</p>' +
-      '<div class="hbars">' + stageMix.map(function(x, i){
-        var w = x.n / mixMax * 100;
-        return '<div class="hbar"><span>' + esc(x.s[1]) + '</span>' +
+      '<div class="hbars">' + STAGES.map(function(s, i){
+        var n = T.filter(function(t){ return t.stage[0] === s[0]; }).length;
+        var l = T.filter(function(t){ return t.stage[0] === s[0] && taskLate(t) > 0; }).length;
+        var mx = Math.max.apply(null, STAGES.map(function(x){
+          return T.filter(function(t){ return t.stage[0] === x[0]; }).length; }).concat([1]));
+        var w = n / mx * 100;
+        return '<div class="hbar"><span>' + esc(s[1]) + '</span>' +
           '<span class="hbar-t">' +
-            '<i class="on" style="width:' + (x.n ? w * (x.n - x.l) / x.n : 0) + '%;background:' + STAGE_HUE[i] + '"></i>' +
-            '<i class="late" style="width:' + (x.n ? w * x.l / x.n : 0) + '%"></i></span>' +
-          '<span class="hbar-n">' + x.n + '</span></div>';
+            '<i class="on" style="width:' + (n ? w * (n - l) / n : 0) + '%;background:' + STAGE_HUE[i] + '"></i>' +
+            '<i class="late" style="width:' + (n ? w * l / n : 0) + '%"></i></span>' +
+          '<span class="hbar-n">' + n + '</span></div>';
       }).join('') + '</div></div>';
-}
-
-/** Their open stages as a plain table — works even when no EDC has been set. */
-function personTable(list){
-  if (!list.length) return '<div class="empty"><b>Nothing open</b>No stage is assigned to them right now.</div>';
-  var sorted = list.slice().sort(function(a, c){
-    if (a.edc && c.edc) return a.edc < c.edc ? -1 : 1;
-    if (a.edc) return -1;
-    if (c.edc) return 1;
-    return a.board.project.localeCompare(c.board.project);
-  });
-  return '<div class="tbl-wrap"><table class="stbl">' +
-    '<thead><tr><th>Board</th><th>Stage</th><th>Status</th><th>EDC</th><th>Days</th></tr></thead><tbody>' +
-    sorted.map(function(t){
-      return '<tr data-s="' + esc(t.status) + '">' +
-        '<td class="nm">' + esc(t.board.project) + '<br><span class="co-sub">' + esc(t.board.customer) + '</span></td>' +
-        '<td>' + esc(t.stage[1]) + '</td>' +
-        '<td><span class="chip" data-s="' + esc(t.status) + '">' + esc(t.status) + '</span></td>' +
-        '<td class="num">' + (t.edc ? fmt(t.edc) : '<span class="dash">not set</span>') + '</td>' +
-        '<td class="num ' + t.info.c + '">' + esc(t.info.t || '—') + '</td>' +
-      '</tr>';
-    }).join('') + '</tbody></table></div>';
 }
 
 /* ------------------------------------------------------------ completed */
@@ -1803,6 +1827,9 @@ function showForm(board){
 document.addEventListener('click', function(e){
   var tb = e.target.closest('.tab-btn');
   if (tb) return showTab(tb.getAttribute('data-tab'));
+
+  var iss = e.target.closest('.issue[data-goto]');
+  if (iss) return showTab(iss.getAttribute('data-goto'));
 
   var pc = e.target.closest('.pcard');
   if (pc) return showPerson(pc.getAttribute('data-person'));
